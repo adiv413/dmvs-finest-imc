@@ -1,3 +1,5 @@
+# THIS IS THE FILE YOU TRADE WITH. DATAMODEL.PY SHOWS THE DATA STRUCTURES THAT EACH TIMESTEP WILL USE>
+
 # The Python code below is the minimum code that is required in a submission file:
 # 1. The "datamodel" imports at the top. Using the typing library is optional.
 # 2. A class called "Trader", this class name should not be changed.
