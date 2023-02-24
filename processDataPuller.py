@@ -1,6 +1,7 @@
 #THERE MUST BE A LOG.TXT FILE WHICH COMES FROM PUTTING THE DATAPULLER.PY INTO THE CODE TESTER
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 #create a function called processLog that takes a string as its argument to read the file. Make sure that the parameters explicity state it is a string
 def processLog(filename: str):
@@ -58,11 +59,47 @@ def plot_product(product): #return ax
     plt.ylabel('price')
     #plt.show()
     return ax
+
 def overlay_sma(ax, period, product):
     #plot the sma on top of the average price
     sma = calcSMA(product, period)
     plt.plot(sma, color='red')
     return ax
+
+def calc_RSI(product):
+    #calculate the relative strength index for each product
+    #calculate the change in price from one time step to the next
+    delta = product['average_price'].diff()
+    #calculate the up and down moves
+    up, down = delta.copy(), delta.copy()
+    up[up < 0] = 0
+    down[down > 0] = 0
+    #calculate the average gain and average loss
+    avg_gain = up.rolling(14).mean()
+    avg_loss = down.abs().rolling(14).mean()
+    #calculate the relative strength
+    relative_strength = avg_gain / avg_loss
+    #calculate the relative strength index
+    rsi = 100.0 - (100.0 / (1.0 + relative_strength))
+
+    #calculate the buy and sell signals
+    buy = []
+    sell = []
+    signal = 0
+    for i in range(len(rsi)):
+        if rsi[i] > 70:
+            sell.append(rsi[i])
+            buy.append(np.nan)
+            signal = 0
+        elif rsi[i] < 30:
+            buy.append(rsi[i])
+            sell.append(np.nan)
+            signal = 1
+        else:
+            buy.append(np.nan)
+            sell.append(np.nan)
+
+
 if __name__ == '__main__':
     products = processLog('log.txt')
     ax = plot_product(products[0])
