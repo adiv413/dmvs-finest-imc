@@ -43,7 +43,12 @@ def processLog(filename: str):
     #save each df as a csv file
     return products
 
-def plot_product(product):
+def calcSMA(product, period):
+    #calculate the simple moving average for each product
+    return product['average_price'].rolling(period).mean()
+
+def plot_product(product): #return ax
+    ax = plt.figure()
     #plot the average price of each product
     plt.plot(product['average_price'])
     plt.title(product['product'][0.0])
@@ -51,7 +56,18 @@ def plot_product(product):
     plt.ylim(product['average_price'].min()*0.99, product['average_price'].max()*1.01)
     plt.xlabel('time')
     plt.ylabel('price')
-    plt.show()
-
+    #plt.show()
+    return ax
+def overlay_sma(ax, period, product):
+    #plot the sma on top of the average price
+    sma = calcSMA(product, period)
+    plt.plot(sma, color='red')
+    return ax
 if __name__ == '__main__':
     products = processLog('log.txt')
+    ax = plot_product(products[0])
+    ax = overlay_sma(ax, 500, products[0])
+    # ax = overlay_sma(ax, 200, products[0])
+    
+    
+    plt.show()
