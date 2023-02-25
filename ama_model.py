@@ -1,6 +1,8 @@
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order
 
+# Mean Reversion with Adaptive Moving Average (AMA), n = 10 (lookback 10 timesteps to adapt)
+# https://help.cqg.com/cqgic/23/default.htm#!Documents/adaptivemovingaverageama.htm
 
 class Trader:
 
