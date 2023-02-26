@@ -99,12 +99,22 @@ def calc_RSI(product):
             buy.append(np.nan)
             sell.append(np.nan)
 
+def plot_spread(product):
+    #plot the spread of each product
+    plt.plot(product['spread'])
+    plt.title(product['product'][0.0])
+    # set the y axis from 0 to the max*1.1
+    plt.ylim(product['spread'].min()*0.90, product['spread'].max()*1.10)
+    plt.xlabel('time')
+    plt.ylabel('price')
+    #plt.show()
 
 if __name__ == '__main__':
     products = processLog('log.txt')
-    ax = plot_product(products[0])
-    ax = overlay_sma(ax, 500, products[0])
+    # ax = plot_product(products[0])
+    # ax = overlay_sma(ax, 500, products[0])
     # ax = overlay_sma(ax, 200, products[0])
+    ax = plot_spread(products[1])
     
     
     plt.show()
