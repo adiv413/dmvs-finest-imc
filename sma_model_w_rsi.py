@@ -15,7 +15,8 @@ class Trader:
         if len(self.prices["avg_prices"][product]) > 1:
             avg_gain = 0
             avg_loss = 0
-            for i in range(max(0, len(self.prices["avg_prices"][product]) - window), len(self.prices["avg_prices"][product]) - 1):
+            lower_lim = max(0, len(self.prices["avg_prices"][product]) - window)
+            for i in range(lower_lim, len(self.prices["avg_prices"][product]) - 1):
                 if self.prices["avg_prices"][product][i] < self.prices["avg_prices"][product][i + 1]:
                     avg_gain += self.prices["avg_prices"][product][i + 1] - self.prices["avg_prices"][product][i]
                 else:
@@ -35,11 +36,16 @@ class Trader:
                 self.prices["avg_gains"][product].append(avg_gain)
                 self.prices["avg_losses"][product].append(avg_loss)
                 return 100 - (100  / (1 + (avg_gain / avg_loss)))
-                              
+
+            curr_gain, curr_loss = 0,0
+            if self.prices["avg_prices"][product][-1] < self.prices["avg_prices"][product][-2]:
+                curr_gain = self.prices["avg_prices"][product][-2] - self.prices["avg_prices"][product][-1]
+            else:
+                curr_loss = self.prices["avg_prices"][product][-1] - self.prices["avg_prices"][product][-2]
             if window * self.prices["avg_gains"][product][-1] + avg_loss == 0:
                 rsi = 100
             else:
-                rsi = 100 - (100 / (1 + ((window * self.prices["avg_gains"][product][-1] + avg_gain) / (window * self.prices["avg_gains"][product][-1] + avg_loss))))
+                rsi = 100 - (100 / (1 + ((window * self.prices["avg_gains"][product][-1] + curr_gain) / (window * self.prices["avg_gains"][product][-1] + curr_loss))))
 
             self.prices["avg_gains"][product].append(avg_gain)
             self.prices["avg_losses"][product].append(avg_loss)
