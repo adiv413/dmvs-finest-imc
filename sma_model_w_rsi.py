@@ -15,7 +15,7 @@ class Trader:
         if len(self.prices["avg_prices"][product]) > 1:
             avg_gain = 0
             avg_loss = 0
-            for i in range(max(0, len(self.prices["avg_prices"][product] - window)), len(self.prices["avg_prices"][product]) - 1):
+            for i in range(max(0, len(self.prices["avg_prices"][product]) - window), len(self.prices["avg_prices"][product]) - 1):
                 if self.prices["avg_prices"][product][i] < self.prices["avg_prices"][product][i + 1]:
                     avg_gain += self.prices["avg_prices"][product][i + 1] - self.prices["avg_prices"][product][i]
                 else:
@@ -24,27 +24,25 @@ class Trader:
                 len(self.prices["avg_prices"][product])
             avg_loss = avg_loss / \
                 len(self.prices["avg_prices"][product])
+            if product not in self.prices["avg_gains"]:
+                self.prices["avg_gains"][product] = []
+            if product not in self.prices["avg_losses"]:
+                self.prices["avg_losses"][product] = []
+
+            window = min(window, len(self.prices["avg_gains"][product]))
+            #calculate rsi moving average 
+            if len(self.prices["avg_gains"][product]) == 0:
+                self.prices["avg_gains"][product].append(avg_gain)
+                self.prices["avg_losses"][product].append(avg_loss)
+                return 100 - (100  / (1 + (avg_gain / avg_loss)))
+                              
+            if window * self.prices["avg_gains"][product][-1] + avg_loss == 0:
+                rsi = 100
+            else:
+                rsi = 100 - (100 / (1 + ((window * self.prices["avg_gains"][product][-1] + avg_gain) / (window * self.prices["avg_gains"][product][-1] + avg_loss))))
+
             self.prices["avg_gains"][product].append(avg_gain)
             self.prices["avg_losses"][product].append(avg_loss)
-
-            #calculate rsi moving average of past 100 instances
-            if len(self.prices["avg_gains"][product]) > window:
-                total_avg_gain = sum(
-                    self.prices["avg_gains"][product][-window:])
-                total_avg_loss = sum(
-                    self.prices["avg_losses"][product][-window:])
-                if(total_avg_loss == 0):
-                    rsi = 100
-                else:
-                    rsi = 100 - (100 / (1 + (total_avg_gain / total_avg_loss)))
-            else:
-                total_avg_gain = sum(self.prices["avg_gains"][product])
-                total_avg_loss = sum(
-                    self.prices["avg_losses"][product])
-                if(total_avg_loss == 0):
-                    rsi = 100
-                else:
-                    rsi = 100 - (100 / (1 + (total_avg_gain / total_avg_loss)))
             return rsi
 
 
@@ -78,15 +76,15 @@ class Trader:
                 # set acceptable price
                 acceptable_price = self.prices["acceptable_price"][product]
 
-                rsi = self.calc_rsi(product, 100)
+                rsi = self.calc_rsi(product, 20)
                 min_rsi, max_rsi = 30, 70
 
                 # based on pricing, make orders
-                if rsi < min_rsi:
+                if rsi < min_rsi and curr_price < acceptable_price:
                     print("BUY", str(-best_ask_volume) + "x", best_ask)
                     orders.append(Order(product, best_ask, -best_ask_volume))
 
-                if rsi > max_rsi:
+                if rsi > max_rsi and curr_price > acceptable_price:
                     print("SELL", str(best_bid_volume) + "x", best_bid)
                     orders.append(Order(product, best_bid, -best_bid_volume))
 
