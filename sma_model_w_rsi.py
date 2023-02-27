@@ -21,10 +21,8 @@ class Trader:
                     avg_gain += self.prices["avg_prices"][product][i + 1] - self.prices["avg_prices"][product][i]
                 else:
                     avg_loss += self.prices["avg_prices"][product][i] - self.prices["avg_prices"][product][i + 1]
-            avg_gain = avg_gain / \
-                len(self.prices["avg_prices"][product])
-            avg_loss = avg_loss / \
-                len(self.prices["avg_prices"][product])
+            avg_gain = avg_gain / len(self.prices["avg_prices"][product])
+            avg_loss = avg_loss / len(self.prices["avg_prices"][product])
             if product not in self.prices["avg_gains"]:
                 self.prices["avg_gains"][product] = []
             if product not in self.prices["avg_losses"]:
@@ -42,10 +40,10 @@ class Trader:
                 curr_gain = self.prices["avg_prices"][product][-2] - self.prices["avg_prices"][product][-1]
             else:
                 curr_loss = self.prices["avg_prices"][product][-1] - self.prices["avg_prices"][product][-2]
-            if window * self.prices["avg_gains"][product][-1] + avg_loss == 0:
+            if window * self.prices["avg_gains"][product][-1] + curr_loss == 0:
                 rsi = 100
             else:
-                rsi = 100 - (100 / (1 + ((window * self.prices["avg_gains"][product][-1] + curr_gain) / (window * self.prices["avg_gains"][product][-1] + curr_loss))))
+                rsi = 100 - (100 / (1 + ((window * self.prices["avg_gains"][product][-1] + curr_gain) / (window * self.prices["avg_losses"][product][-1] + curr_loss))))
 
             self.prices["avg_gains"][product].append(avg_gain)
             self.prices["avg_losses"][product].append(avg_loss)
@@ -86,11 +84,11 @@ class Trader:
                 min_rsi, max_rsi = 30, 70
 
                 # based on pricing, make orders
-                if rsi < min_rsi and curr_price < acceptable_price:
+                if rsi < min_rsi:
                     print("BUY", str(-best_ask_volume) + "x", best_ask)
                     orders.append(Order(product, best_ask, -best_ask_volume))
 
-                if rsi > max_rsi and curr_price > acceptable_price:
+                if rsi > max_rsi:
                     print("SELL", str(best_bid_volume) + "x", best_bid)
                     orders.append(Order(product, best_bid, -best_bid_volume))
 
