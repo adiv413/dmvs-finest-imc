@@ -16,4 +16,9 @@ class Trader:
         and outputs a list of orders to be sent
         """
         result = {}
+
+        for product in state.order_depths.keys():
+            if product == "PEARLS":
+                order_depth: OrderDepth = state.order_depths[product]
+
         return result
