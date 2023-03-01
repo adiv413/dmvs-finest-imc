@@ -33,13 +33,15 @@ class Trader:
                     #average of best bid and ask
                     CURRENT_MID_PRICE = (min(order_depth.sell_orders.keys()) + max(order_depth.buy_orders.keys())) / 2
                     #Distance from target inventory
-                    Q = state.position[product] - TARGET_INVENTORY
+                    #Q = state.position[product] - TARGET_INVENTORY
+                    Q = 1
                     #Inventory risk aversion parameter -- constant now but will be dynamic as algorithm is updated
-                    GAMMA = 0.5
+                    GAMMA = 0.1
                     #Market volatility
-                    SIGMA = 8
+                    SIGMA = 2
                     #Time left normalized (T-t), where T is normalized to 1 and t should be a fraction of time
-                    TIME_RATIO = 1 - state.timestamp / 200000
+                    #TIME_RATIO = 1 - state.timestamp / 200000
+                    TIME_RATIO = 1
                     #Order book liquidity density
                     KAPPA = 1
 
@@ -49,15 +51,22 @@ class Trader:
                     OPTIMAL_BID = RESERVATION_PRICE - (OPTIMAL_TOTAL_SPREAD / 2)
                     OPTIMAL_ASK = RESERVATION_PRICE + (OPTIMAL_TOTAL_SPREAD / 2)
 
-                    volume = abs(q)
+                
+                
 
-                    print("BUY", str(-volume) + "x", OPTIMAL_ASK)
-                    orders.append(Order(product, OPTIMAL_ASK, -best_ask_volume))
+                    
+                    best_ask_volume = order_depth.sell_orders[OPTIMAL_ASK]
 
-                    print("SELL", str(volume) + "x", OPTIMAL_BID)
-                    orders.append(Order(product, OPTIMAL_BID, -best_bid_volume))
+                    # Check if the lowest ask (sell order) is lower than the above defined fair value
+                    if best_ask < acceptable_price:
 
-                    result[product] = orders
+                        # In case the lowest ask is lower than our fair value,
+                        # This presents an opportunity for us to buy cheaply
+                        # The code below therefore sends a BUY order at the price level of the ask,
+                        # with the same quantity
+                        # We expect this order to trade with the sell order
+                        print("BUY", str(-best_ask_volume) + "x", best_ask)
+                        orders.append(Order(product, best_ask, -best_ask_volume))
         
         return result
 
