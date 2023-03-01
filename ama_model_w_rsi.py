@@ -27,8 +27,7 @@ class Trader:
                 0, len(self.prices["avg_prices"][product]) - window)
             for i in range(lower_lim, len(self.prices["avg_prices"][product]) - 1):
                 if self.prices["avg_prices"][product][i] < self.prices["avg_prices"][product][i + 1]:
-                    avg_gain += self.prices["avg_prices"][product][i +
-                                                                   1] - self.prices["avg_prices"][product][i]
+                    avg_gain += self.prices["avg_prices"][product][i + 1] - self.prices["avg_prices"][product][i]
                 else:
                     avg_loss += self.prices["avg_prices"][product][i] - \
                         self.prices["avg_prices"][product][i + 1]
