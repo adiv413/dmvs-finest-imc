@@ -7,6 +7,7 @@
 
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order
+import math
 
 class Trader:
 
@@ -34,11 +35,31 @@ class Trader:
                     #Distance from target inventory
                     Q = state.position[product] - TARGET_INVENTORY
                     #Inventory risk aversion parameter -- constant now but will be dynamic as algorithm is updated
-                    GAMMA = 0.2
+                    GAMMA = 0.5
                     #Market volatility
-                    SIGMA = 0
+                    SIGMA = 8
                     #Time left normalized (T-t), where T is normalized to 1 and t should be a fraction of time
                     TIME_RATIO = 1 - state.timestamp / 200000
+                    #Order book liquidity density
+                    KAPPA = 1
+
+                    RESERVATION_PRICE = CURRENT_MID_PRICE - (Q * GAMMA * (SIGMA ** 2) * TIME_RATIO)
+                    OPTIMAL_TOTAL_SPREAD = (GAMMA * (SIGMA ** 2) * TIME_RATIO) + ((2 / GAMMA) * math.log(1 + GAMMA/KAPPA))
+
+                    OPTIMAL_BID = RESERVATION_PRICE - (OPTIMAL_TOTAL_SPREAD / 2)
+                    OPTIMAL_ASK = RESERVATION_PRICE + (OPTIMAL_TOTAL_SPREAD / 2)
+
+                    volume = abs(q)
+
+                    print("BUY", str(-volume) + "x", OPTIMAL_ASK)
+                    orders.append(Order(product, OPTIMAL_ASK, -best_ask_volume))
+
+                    print("SELL", str(volume) + "x", OPTIMAL_BID)
+                    orders.append(Order(product, OPTIMAL_BID, -best_bid_volume))
+
+                    result[product] = orders
+        
+        return result
 
 
 
@@ -48,7 +69,7 @@ class Trader:
 
 
 
-
+""" 
                 if len(order_depth.sell_orders) > 0:
 
                     best_ask = min(order_depth.sell_orders.keys())
@@ -74,13 +95,13 @@ class Trader:
                     best_bid_volume = order_depth.buy_orders[best_bid]
                     if best_bid > acceptable_price:
                         print("SELL", str(best_bid_volume) + "x", best_bid)
-                        orders.append(Order(product, best_bid, -best_bid_volume))
+                        orders.append(Order(product, best_bid, -best_bid_volume)) """
 
                 # Add all the above orders to the result dict
-                result[product] = orders
+                #result[product] = orders
 
                 # Return the dict of orders
                 # These possibly contain buy or sell orders for PEARLS
                 # Depending on the logic above
         
-        return result
+        #return result
