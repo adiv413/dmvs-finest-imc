@@ -5,8 +5,9 @@ from datamodel import OrderDepth, TradingState, Order
 
 
 class Trader:
-    PROFIT_TARGET = 1
-    RISK_ADJUSTMENT = 1
+    PROFIT_TARGET = 0.1
+    RISK_ADJUSTMENT = 0.5
+    ORDER_SIZE = 1
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
@@ -24,19 +25,22 @@ class Trader:
             if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0 and product == "BANANAS":
                 best_bid = max(order_depth.buy_orders.keys())
                 best_ask = min(order_depth.sell_orders.keys())
-                value = (best_ask + best_bid)/2
+                spot_price = (best_ask + best_bid)/2
                 spread = best_ask - best_bid + self.PROFIT_TARGET
-                try:
-                    position = state.position[product]
-                except:
-                    position = 0
-                skew = -position * self.RISK_ADJUSTMENT
+                spread_pct = spread/spot_price
+                position = state.position[product]
+                skew = (position/self.ORDER_SIZE) * (spread_pct/2) * -1
 
-                buy_quote = value + skew - spread/2+0.01
-                sell_quote = value + skew + spread/2-0.01
+                new_spot_price = spot_price*(1+skew)
+                quote_bid = new_spot_price*(1-spread_pct/2)
+                quote_ask = new_spot_price*(1+spread_pct/2)
 
-                orders.append(Order(product, buy_quote, 1))
-                orders.append(Order(product, sell_quote, -1))               
+                orders.append(Order(product, quote_bid, self.ORDER_SIZE))
+                orders.append(Order(product, quote_ask, -self.ORDER_SIZE))
                 result[product] = orders
+                
+
+
+        print("own trades: ", state.own_trades)
         
         return result
