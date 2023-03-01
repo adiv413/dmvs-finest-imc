@@ -65,6 +65,15 @@ def overlay_sma(ax, period, product):
     sma = calcSMA(product, period)
     plt.plot(sma, color='red')
     return ax
+def calc_volatility(product):
+    s = 0
+    print(product)
+    l = product['average_price'].tolist()
+    mean = sum(l) / len(l)
+    for i in range(0, len(product)):
+        s += abs(l[i] - mean) ** 2
+    return s / (len(product) - 1)
+    volatility = sum([abs(product['average_price'][j] - product['average_price'][j - 1]) ** 2 for j in range(len(product), 1, -1)])
 
 def calc_RSI(product):
     #calculate the relative strength index for each product
@@ -117,6 +126,7 @@ if __name__ == '__main__':
     ax = plot_spread(products[0])
     # ax2 = plot_spread(products[1])
     # ax2 = plot_product(products[1])
+    print(calc_volatility(products[0]), calc_volatility(products[1]))
     
     #show both
     plt.show()
