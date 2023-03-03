@@ -6,7 +6,7 @@ import math
 
 class Trader:
     sigma = math.sqrt(63.34561255627815)
-    gamma = 0.2 # risk aversion
+    gamma = 1 # risk aversion
     k = 1.5
     T = 1.0
     num_steps = 1000
@@ -38,6 +38,7 @@ class Trader:
                 # spread = self.gamma * (self.sigma)**2 * (self.T - timestamp/200000) + (2/self.gamma) * ( math.log(1 + (self.gamma/self.k)))
 
                 print(f'position: {position}')
+                
                 #time independent version
                 w = 0.5 * (self.gamma)**2 * (self.sigma)**2 * (self.q_max+1)**2
                 reserve_price_a = mid_price + (1/self.gamma) * math.log( 1 + ( (1-2*position) * (self.gamma)**2 * (self.sigma)**2) / \
@@ -50,7 +51,8 @@ class Trader:
                 my_bid = reserve_price - spread/2
                 my_ask = reserve_price + spread/2
 
-                # print(f'mid_price: {mid_price}, reserve_price: {reserve_price}, spread: {spread}, my_bid: {my_bid}, my_ask: {my_ask}, actual spread: {best_bid - best_ask}')
+                print('reserve price diff = ', reserve_price - mid_price)
+                print(f'mid_price: {mid_price}, reserve_price: {reserve_price}, spread: {spread}, my_bid: {my_bid}, my_ask: {my_ask}, actual spread: {best_bid - best_ask}')
                 
                 orders.append(Order(product, my_bid, 1))
                 orders.append(Order(product, my_ask, -1))
