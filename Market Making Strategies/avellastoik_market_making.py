@@ -38,7 +38,7 @@ class Trader:
                     #Inventory risk aversion parameter -- constant now but will be dynamic as algorithm is updated
                     GAMMA = 0.1
                     #Market volatility
-                    SIGMA = 2
+                    SIGMA = 7
                     #Time left normalized (T-t), where T is normalized to 1 and t should be a fraction of time
                     #TIME_RATIO = 1 - state.timestamp / 200000
                     TIME_RATIO = 1
