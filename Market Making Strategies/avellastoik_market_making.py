@@ -19,7 +19,7 @@ class Trader:
         result = {}
 
         for product in state.order_depths.keys():
-            if product == 'PEARLS':
+            if product == 'BANANAS':
 
                 MAX_PRODUCT = 20
                 TARGET_INVENTORY = 10
