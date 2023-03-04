@@ -118,6 +118,8 @@ def plot_spread(product):
     plt.ylabel('price')
     #plt.show()
 
+
+
 if __name__ == '__main__':
     products = processLog('log.txt')
     ax = plot_product(products[0])

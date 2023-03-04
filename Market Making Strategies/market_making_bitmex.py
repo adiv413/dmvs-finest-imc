@@ -5,9 +5,8 @@ from datamodel import OrderDepth, TradingState, Order
 
 
 class Trader:
-    PROFIT_TARGET = 0.1
-    RISK_ADJUSTMENT = 0.5
-    ORDER_SIZE = 1
+    PROFIT_TARGET = 1
+    ORDER_SIZE = 2
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
@@ -28,7 +27,10 @@ class Trader:
                 spot_price = (best_ask + best_bid)/2
                 spread = best_ask - best_bid + self.PROFIT_TARGET
                 spread_pct = spread/spot_price
-                position = state.position[product]
+                try:
+                    position = state.position[product]
+                except:
+                    position = 0
                 skew = (position/self.ORDER_SIZE) * (spread_pct/2) * -1
 
                 new_spot_price = spot_price*(1+skew)
