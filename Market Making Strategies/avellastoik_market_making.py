@@ -10,7 +10,11 @@ from datamodel import OrderDepth, TradingState, Order
 import math
 
 class Trader:
+    prices = {
+        'price_ask': 0,
+        'price_bid': 0,
 
+    }
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
         Takes all buy and sell orders for all symbols as an input,
@@ -20,36 +24,44 @@ class Trader:
 
         for product in state.order_depths.keys():
             if product == 'BANANAS':
-
+                try:
+                    position = state.position[product]
+                except:
+                    position = 0
                 MAX_PRODUCT = 20
                 TARGET_INVENTORY = 10
 
                 order_depth: OrderDepth = state.order_depths[product]
                 orders: list[Order] = []
 
+
+                if len(order_depth.sell_orders) > 0:
+                    self.prices['price_ask'] = min(order_depth.sell_orders.keys())
+                if len(order_depth.buy_orders) > 0:
+                    self.prices['price_bid'] = max(order_depth.buy_orders.keys())
                 # If order book is not empty execute the algorithm
-                if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
+            
 
                     #average of best bid and ask
-                    CURRENT_MID_PRICE = (min(order_depth.sell_orders.keys()) + max(order_depth.buy_orders.keys())) / 2
-                    #Distance from target inventory
-                    #Q = state.position[product] - TARGET_INVENTORY
-                    Q = 1
-                    #Inventory risk aversion parameter -- constant now but will be dynamic as algorithm is updated
-                    GAMMA = 0.1
-                    #Market volatility
-                    SIGMA = 7
-                    #Time left normalized (T-t), where T is normalized to 1 and t should be a fraction of time
-                    #TIME_RATIO = 1 - state.timestamp / 200000
-                    TIME_RATIO = 1
-                    #Order book liquidity density
-                    KAPPA = 1
+                CURRENT_MID_PRICE = (self.prices['price_ask'] + self.prices['price_bid']) / 2
+                #Distance from target inventory
+                Q = position - TARGET_INVENTORY
+                #Q = 1
+                #Inventory risk aversion parameter -- constant now but will be dynamic as algorithm is updated
+                GAMMA = 0.1
+                #Market volatility
+                SIGMA = 7
+                #Time left normalized (T-t), where T is normalized to 1 and t should be a fraction of time
+                #TIME_RATIO = 1 - state.timestamp / 200000
+                TIME_RATIO = 1
+                #Order book liquidity density
+                KAPPA = 1
 
-                    RESERVATION_PRICE = CURRENT_MID_PRICE - (Q * GAMMA * (SIGMA ** 2) * TIME_RATIO)
-                    OPTIMAL_TOTAL_SPREAD = (GAMMA * (SIGMA ** 2) * TIME_RATIO) + ((2 / GAMMA) * math.log(1 + GAMMA/KAPPA))
+                RESERVATION_PRICE = CURRENT_MID_PRICE - (Q * GAMMA * (SIGMA ** 2) * TIME_RATIO)
+                OPTIMAL_TOTAL_SPREAD = (GAMMA * (SIGMA ** 2) * TIME_RATIO) + ((2 / GAMMA) * math.log(1 + GAMMA/KAPPA))
 
-                    OPTIMAL_BID = RESERVATION_PRICE - (OPTIMAL_TOTAL_SPREAD / 2)
-                    OPTIMAL_ASK = RESERVATION_PRICE + (OPTIMAL_TOTAL_SPREAD / 2)
+                OPTIMAL_BID = RESERVATION_PRICE - (OPTIMAL_TOTAL_SPREAD / 2)
+                OPTIMAL_ASK = RESERVATION_PRICE + (OPTIMAL_TOTAL_SPREAD / 2)
 
                 
                 
