@@ -55,19 +55,24 @@ class Trader:
                 
 
                     
-                    OPTIMAL_ASK_VOLUME = order_depth.sell_orders.get(OPTIMAL_ASK) or order_depth.sell_orders[
-                        min(order_depth.sell_orders.keys(), key = lambda key : abs(key - OPTIMAL_ASK))]
 
                     # Check if the lowest ask (sell order) is lower than the above defined fair value
-                    if best_ask < acceptable_price:
-
-                        # In case the lowest ask is lower than our fair value,
-                        # This presents an opportunity for us to buy cheaply
-                        # The code below therefore sends a BUY order at the price level of the ask,
-                        # with the same quantity 
-                        # We expect this order to trade with the sell order
+                if len(order_depth.sell_orders) > 0:
+                    best_ask = min(order_depth.sell_orders.keys())
+                    best_ask_volume = order_depth.sell_orders[best_ask]
+                    if best_ask < OPTIMAL_ASK:
                         print("BUY", str(-best_ask_volume) + "x", best_ask)
                         orders.append(Order(product, best_ask, -best_ask_volume))
+
+                if len(order_depth.buy_orders) > 0:
+                    best_bid = max(order_depth.buy_orders.keys())
+                    best_bid_volume = order_depth.buy_orders[best_bid]
+                    if best_bid > OPTIMAL_BID:
+                        print("SELL", str(best_bid_volume) + "x", best_bid)
+                        orders.append(Order(product, best_bid, -best_bid_volume))
+
+                print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {OPTIMAL_BID}, {OPTIMAL_ASK}')
+
         
         return result
 
