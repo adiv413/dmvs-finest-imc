@@ -23,26 +23,26 @@ class Trader:
 
             if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0 and product == "BANANAS":
                 best_bid = max(order_depth.buy_orders.keys())
-                best_bid_volume = order_depth.buy_orders[best_bid]
+
                 best_ask = min(order_depth.sell_orders.keys())
-                best_ask_volume = order_depth.sell_orders[best_ask]
-                average_volume = (best_bid_volume + best_ask_volume)/2
-                print(best_ask_volume, best_bid_volume)
+
                 value = (best_ask + best_bid)/2
                 spread = best_ask - best_bid
-                if spread <=7:
-                    try:
-                        position = state.position[product]
-                    except:
-                        position = 0
-                    skew = -position * self.RISK_ADJUSTMENT
+                try:
+                    position = state.position[product]
+                except:
+                    position = 0
+                skew = -position * self.RISK_ADJUSTMENT
 
-                    buy_quote = value - (skew - spread/2+0.01)
-                    sell_quote = value - (skew + spread/2-0.01)
-        
-                    orders.append(Order(product, buy_quote, 1))
-                    orders.append(Order(product, sell_quote, -1))               
-                    result[product] = orders
-        print("own trades: ", state.own_trades)
+                # buy_quote = value + (skew - spread/2+0.01)
+                # sell_quote = value + (skew + spread/2-0.01)
+                buy_quote = value - 1
+                sell_quote = value + 1
+    
+                orders.append(Order(product, buy_quote, 1))
+                orders.append(Order(product, sell_quote, -1))  
+
+                print(f'position: {position}')             
+                result[product] = orders
         
         return result
