@@ -5,8 +5,16 @@ from datamodel import OrderDepth, TradingState, Order
 
 
 class Trader:
-    PROFIT_TARGET = 1
-    RISK_ADJUSTMENT = 0.12
+    # PROFIT_TARGET = 1
+    #BEST
+    # RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
+    # ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
+    # HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
+
+    RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
+    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 4}
+    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
+
     prices = {
         "asks" : {}, 
         "bids" : {},
@@ -15,9 +23,9 @@ class Trader:
         "acceptable_price" : {
             "PEARLS" : 10000,
             "BANANAS" : 4895
-        }
+        } 
     }
-
+    
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
         Only method required. It takes all buy and sell orders for all symbols as an input,
@@ -42,16 +50,21 @@ class Trader:
                     position = state.position[product]
                 except:
                     position = 0
-                skew = -position * self.RISK_ADJUSTMENT
+                skew = -position * self.RISK_ADJUSTMENT[product]
 
                 # buy_quote = value + (skew - spread/2+0.01)
                 # sell_quote = value + (skew + spread/2-0.01)
-                buy_quote = value - 3 + skew
-                sell_quote = value + 3 + skew
+                buy_quote = value - self.HALF_SPREAD_SIZE[product] + skew
+                sell_quote = value + self.HALF_SPREAD_SIZE[product] + skew
     
-                orders.append(Order(product, buy_quote, 4))
-                orders.append(Order(product, sell_quote, -4))  
-          
+                orders.append(Order(product, buy_quote, self.ORDER_VOLUME[product]))
+                orders.append(Order(product, sell_quote, -self.ORDER_VOLUME[product]))
+
+                best_ask = min(order_depth.sell_orders.keys())
+                best_ask_volume = order_depth.sell_orders[best_ask]
+                best_bid = max(order_depth.buy_orders.keys())
+                best_bid_volume = order_depth.buy_orders[best_bid]
+
                 if product not in self.prices["asks"]:
                     self.prices["asks"][product] = []
                 if product not in self.prices["bids"]:

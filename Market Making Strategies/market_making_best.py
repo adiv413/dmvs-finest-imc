@@ -11,7 +11,7 @@ class Trader:
     # ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
     # HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
 
-    RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.01}
+    RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
     ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
     HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
     
@@ -47,9 +47,7 @@ class Trader:
                 sell_quote = value + self.HALF_SPREAD_SIZE[product] + skew
     
                 orders.append(Order(product, buy_quote, self.ORDER_VOLUME[product]))
-                # orders.append(Order(product, buy_quote-2, self.ORDER_VOLUME/2))
                 orders.append(Order(product, sell_quote, -self.ORDER_VOLUME[product]))
-                # orders.append(Order(product, sell_quote+2, -self.ORDER_VOLUME/2))
 
                 print(f'position: {position}')
 
