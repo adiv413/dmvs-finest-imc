@@ -6,7 +6,9 @@ from datamodel import OrderDepth, TradingState, Order
 
 class Trader:
     PROFIT_TARGET = 1
-    RISK_ADJUSTMENT = 0.10
+    RISK_ADJUSTMENT = 0.15
+    ORDER_VOLUME = 5
+    HALF_SPREAD_SIZE = 3
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
@@ -36,13 +38,13 @@ class Trader:
 
                 # buy_quote = value + (skew - spread/2+0.01)
                 # sell_quote = value + (skew + spread/2-0.01)
-                buy_quote = value - 3 + skew
-                sell_quote = value + 3 + skew
+                buy_quote = value - self.HALF_SPREAD_SIZE + skew
+                sell_quote = value + self.HALF_SPREAD_SIZE + skew
     
-                orders.append(Order(product, buy_quote, 5))
-                orders.append(Order(product, sell_quote, -5))  
+                orders.append(Order(product, buy_quote, self.ORDER_VOLUME))
+                orders.append(Order(product, sell_quote, -self.ORDER_VOLUME))
 
-                print(f'position: {position}')     
+                print(f'position: {position}')
 
                 result[product] = orders
         
