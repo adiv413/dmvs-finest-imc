@@ -6,7 +6,7 @@ from datamodel import OrderDepth, TradingState, Order
 
 class Trader:
     PROFIT_TARGET = 1
-    RISK_ADJUSTMENT = 1
+    RISK_ADJUSTMENT = 0.12
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
@@ -21,7 +21,7 @@ class Trader:
             # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS
             order_depth: OrderDepth = state.order_depths[product]
 
-            if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0 and product == "BANANAS":
+            if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
                 best_bid = max(order_depth.buy_orders.keys())
 
                 best_ask = min(order_depth.sell_orders.keys())
@@ -36,11 +36,11 @@ class Trader:
 
                 # buy_quote = value + (skew - spread/2+0.01)
                 # sell_quote = value + (skew + spread/2-0.01)
-                buy_quote = value - 1
-                sell_quote = value + 1
+                buy_quote = value - 3 + skew
+                sell_quote = value + 3 + skew
     
-                orders.append(Order(product, buy_quote, 1))
-                orders.append(Order(product, sell_quote, -1))  
+                orders.append(Order(product, buy_quote, 4))
+                orders.append(Order(product, sell_quote, -4))  
 
                 print(f'position: {position}')             
                 result[product] = orders
