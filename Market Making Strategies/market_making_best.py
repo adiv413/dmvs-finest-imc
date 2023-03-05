@@ -6,11 +6,15 @@ from datamodel import OrderDepth, TradingState, Order
 
 class Trader:
     # PROFIT_TARGET = 1
-    #best rn is order_volume = 4, risk adjustment = 0.12, half spread = 3
-    RISK_ADJUSTMENT = 0.12
-    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
-    HALF_SPREAD_SIZE = 3
+    #BEST
+    # RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
+    # ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
+    # HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
 
+    RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.01}
+    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
+    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
+    
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
         Only method required. It takes all buy and sell orders for all symbols as an input,
@@ -35,12 +39,12 @@ class Trader:
                     position = state.position[product]
                 except:
                     position = 0
-                skew = -position * self.RISK_ADJUSTMENT
+                skew = -position * self.RISK_ADJUSTMENT[product]
 
                 # buy_quote = value + (skew - spread/2+0.01)
                 # sell_quote = value + (skew + spread/2-0.01)
-                buy_quote = value - self.HALF_SPREAD_SIZE + skew
-                sell_quote = value + self.HALF_SPREAD_SIZE + skew
+                buy_quote = value - self.HALF_SPREAD_SIZE[product] + skew
+                sell_quote = value + self.HALF_SPREAD_SIZE[product] + skew
     
                 orders.append(Order(product, buy_quote, self.ORDER_VOLUME[product]))
                 # orders.append(Order(product, buy_quote-2, self.ORDER_VOLUME/2))
