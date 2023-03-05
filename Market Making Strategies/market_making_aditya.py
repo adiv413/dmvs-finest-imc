@@ -5,9 +5,9 @@ from datamodel import OrderDepth, TradingState, Order
 
 
 class Trader:
-    PROFIT_TARGET = 1
+    # PROFIT_TARGET = 1
     RISK_ADJUSTMENT = 0.15
-    ORDER_VOLUME = 5
+    ORDER_VOLUME = 10
     HALF_SPREAD_SIZE = 3
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:

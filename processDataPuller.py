@@ -125,7 +125,7 @@ if __name__ == '__main__':
     # ax = plot_product(products[0])
     # ax = overlay_sma(ax, 500, products[0])
     # ax = overlay_sma(ax, 200, products[0])
-    ax = plot_spread(products[1])
+    ax = plot_spread(products[0])
     # ax2 = plot_spread(products[1])
     # ax2 = plot_product(products[1])
     # print(calc_volatility(products[0]), calc_volatility(products[1]))
