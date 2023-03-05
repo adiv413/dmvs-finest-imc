@@ -50,7 +50,7 @@ class Trader:
                 #Inventory risk aversion parameter -- constant now but will be dynamic as algorithm is updated
                 GAMMA = 0.1
                 #Market volatility
-                SIGMA = 7
+                SIGMA = 8
                 #Time left normalized (T-t), where T is normalized to 1 and t should be a fraction of time
                 #TIME_RATIO = 1 - state.timestamp / 200000
                 TIME_RATIO = 1
@@ -69,21 +69,14 @@ class Trader:
                     
 
                     # Check if the lowest ask (sell order) is lower than the above defined fair value
-                if len(order_depth.sell_orders) > 0:
-                    best_ask = min(order_depth.sell_orders.keys())
-                    best_ask_volume = order_depth.sell_orders[best_ask]
-                    if best_ask < OPTIMAL_ASK:
-                        print("BUY", str(-best_ask_volume) + "x", best_ask)
-                        orders.append(Order(product, best_ask, -best_ask_volume))
+                print("BUY", str(20) + "x", OPTIMAL_ASK)
+                orders.append(Order(product, OPTIMAL_ASK, 20))
 
-                if len(order_depth.buy_orders) > 0:
-                    best_bid = max(order_depth.buy_orders.keys())
-                    best_bid_volume = order_depth.buy_orders[best_bid]
-                    if best_bid > OPTIMAL_BID:
-                        print("SELL", str(best_bid_volume) + "x", best_bid)
-                        orders.append(Order(product, best_bid, -best_bid_volume))
+               
+                print("SELL", str(20) + "x", OPTIMAL_BID)
+                orders.append(Order(product, OPTIMAL_BID, 20))
 
-                print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {OPTIMAL_BID}, {OPTIMAL_ASK}')
+                #print(f'{product}, {position}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {OPTIMAL_BID}, {OPTIMAL_ASK}')
 
         
         return result
