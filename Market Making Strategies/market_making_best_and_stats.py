@@ -1,7 +1,7 @@
 #https://kollider.medium.com/build-a-crypto-market-making-bot-in-python-d71eeae2dcd7
 #https://www.reddit.com/r/algotrading/comments/6q8dp6/market_making_theory_and_application_readings/
 from typing import Dict, List
-from datamodel import OrderDepth, TradingState, Order
+from datamodel import OrderDepth, TradingState, Order, Trade
 
 
 class Trader:
@@ -64,15 +64,20 @@ class Trader:
                     print(f'buyer: {state.own_trades[product][0].buyer}, seller: {state.own_trades[product][0].seller}')
                 except:
                     print(f'no trades for {product}')
+                
+                print(f'market trades for {product}: {state.market_trades[product]}')
 
                 print('\n')
                 print(f'actual position for {product}: {position}')
                 print(f'estimated position for {product}: {self.POSITION[product]}')
-
                 print('\n')
 
                 print(f'buy order for {product} at {buy_quote} with volume {self.ORDER_VOLUME[product]}')
                 print(f'sell order for {product} at {sell_quote} with volume {-self.ORDER_VOLUME[product]}')
+
+                order_success_pct = self.ORDER_COUNT[product] / ((state.timestamp/100)+1)
+                print(f'order success rate for {product}: {order_success_pct}')
+
 
                 result[product] = orders
         
