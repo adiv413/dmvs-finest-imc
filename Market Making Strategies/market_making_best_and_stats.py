@@ -14,28 +14,22 @@ class Trader:
     RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
     ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
     HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
-    
+    POSITION = {"BANANAS" : 0, "PEARLS" : 0}
+    ORDER_COUNT = {"BANANAS" : 0, "PEARLS" : 0}
+    LAST_OWN_TRADE = {"BANANAS" : 0, "PEARLS" : 0}
+
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         print('\n')
-        """
-        Only method required. It takes all buy and sell orders for all symbols as an input,
-        and outputs a list of orders to be sent
-        """
-        # Initialize the method output dict as an empty dict
         result = {}
-        # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
             orders: list[Order] = []
-            # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS
             order_depth: OrderDepth = state.order_depths[product]
 
             if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
+
                 best_bid = max(order_depth.buy_orders.keys())
-
                 best_ask = min(order_depth.sell_orders.keys())
-
                 value = (best_ask + best_bid)/2
-                spread = best_ask - best_bid
                 try:
                     position = state.position[product]
                 except:
@@ -50,13 +44,30 @@ class Trader:
                 orders.append(Order(product, buy_quote, self.ORDER_VOLUME[product]))
                 orders.append(Order(product, sell_quote, -self.ORDER_VOLUME[product]))
 
-                # print(f'position: {position}')'
+                try:
+                    own_trades = state.own_trades[product]
+                    if len(own_trades) > 0 and str(own_trades) != self.LAST_OWN_TRADE[product]:
+                        for trade in own_trades:
+                            if trade.buyer == "SUBMISSION":
+                                self.ORDER_COUNT[product] += 1
+                                self.POSITION[product] += trade.quantity
+                            elif trade.seller == "SUBMISSION":
+                                self.ORDER_COUNT[product] += 1
+                                self.POSITION[product] -= trade.quantity
+                    self.LAST_OWN_TRADE[product] = str(own_trades)
+                except:
+                    pass
+
+                #ANALYTICS
                 try:
                     print(f'own trades for {product}: {state.own_trades[product]}')
+                    print(f'buyer: {state.own_trades[product][0].buyer}, seller: {state.own_trades[product][0].seller}')
                 except:
                     print(f'no trades for {product}')
 
-                print(f'net position for {product}: {position}')
+                print('\n')
+                print(f'actual position for {product}: {position}')
+                print(f'estimated position for {product}: {self.POSITION[product]}')
 
                 print('\n')
 
@@ -65,5 +76,5 @@ class Trader:
 
                 result[product] = orders
         
-        print('\n')
+        print('\n----------------------------------------------------------------------------------------------------\n')
         return result
