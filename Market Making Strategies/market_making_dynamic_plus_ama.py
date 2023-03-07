@@ -1,10 +1,21 @@
+#https://kollider.medium.com/build-a-crypto-market-making-bot-in-python-d71eeae2dcd7
+#https://www.reddit.com/r/algotrading/comments/6q8dp6/market_making_theory_and_application_readings/
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order
 
-# Mean Reversion with Adaptive Moving Average (AMA), n = 10 (lookback 10 timesteps to adapt)
-# https://help.cqg.com/cqgic/23/default.htm#!Documents/adaptivemovingaverageama.htm
 
 class Trader:
+    # PROFIT_TARGET = 1
+    # BEST:
+    # RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
+    # ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
+    # HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
+
+    RISK_ADJUSTMENT = {"BANANAS" : 0.1, "PEARLS" : 0.1} 
+    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 4}
+    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3} # TODO: maybe make dynamic based on current spread (-= round(2 / curr_spread) if no spike else 0 or something)
+
+    POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
 
     prices = {
         "asks" : {}, 
@@ -17,9 +28,8 @@ class Trader:
         } 
     }
 
-    POSITION_LIMIT = {"BANANAS" : 20, "PEARLS" : 20}
-
-
+    ama_order = 0
+    
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
         Only method required. It takes all buy and sell orders for all symbols as an input,
@@ -27,13 +37,40 @@ class Trader:
         """
         # Initialize the method output dict as an empty dict
         result = {}
-
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
-            order_depth: OrderDepth = state.order_depths[product]
             orders: list[Order] = []
+            # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS
+            order_depth: OrderDepth = state.order_depths[product]
 
-            if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0: # if there are orders in the market, recompute acceptable price
+            if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
+                best_bid = max(order_depth.buy_orders.keys())
+
+                best_ask = min(order_depth.sell_orders.keys())
+
+                value = (best_ask + best_bid)/2 
+                curr_spread = best_ask - best_bid
+                try:
+                    position = state.position[product]
+                except:
+                    position = 0
+                
+                # TODO: maybe account for ama here? either through not including ama positioning in total position or through multiplying by some ama factor directly
+                skew = round(-position * self.RISK_ADJUSTMENT[product]) if self.ama_order == 0 else round(-position * self.RISK_ADJUSTMENT[product] * (1 - self.ama_order / 20))
+                # skew = round(-position * self.RISK_ADJUSTMENT[product]) #if self.ama_order == 0 else round(-position * self.RISK_ADJUSTMENT[product] * (1 - self.ama_order / 20))
+                # skew = round(-position * self.RISK_ADJUSTMENT[product]) if self.ama_order == 0 else round(-position * self.RISK_ADJUSTMENT[product] * (1 - self.ama_order / 20))
+
+                # multiply by constant?
+                # adjust risk_adjustment?
+
+                # buy_quote = value + (skew - spread/2+0.01)
+                # sell_quote = value + (skew + spread/2-0.01)
+                buy_quote = value - self.HALF_SPREAD_SIZE[product] + skew
+                sell_quote = value + self.HALF_SPREAD_SIZE[product] + skew
+    
+                orders.append(Order(product, buy_quote, self.ORDER_VOLUME[product]))
+                orders.append(Order(product, sell_quote, -self.ORDER_VOLUME[product]))
+
                 best_ask = min(order_depth.sell_orders.keys())
                 best_ask_volume = order_depth.sell_orders[best_ask]
                 best_bid = max(order_depth.buy_orders.keys())
@@ -80,6 +117,8 @@ class Trader:
                 self.prices["acceptable_price"][product] = curr_average
                 self.prices["avg_prices"][product].append(curr_average)
 
+            self.ama_order = 0
+
             # set acceptable price
             acceptable_price = self.prices["acceptable_price"][product]
 
@@ -92,17 +131,21 @@ class Trader:
                 best_ask = min(order_depth.sell_orders.keys())
                 best_ask_volume = order_depth.sell_orders[best_ask]
 
-                if best_ask < acceptable_price:
-                    print("BUY", str(-best_ask_volume) + "x", best_ask)
+                if best_ask < acceptable_price: 
+                    # print("BUY", str(-best_ask_volume) + "x", best_ask)
                     orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, self.POSITION_LIMIT[product] - position))))
+                    self.ama_order = max(0,min(-best_ask_volume, self.POSITION_LIMIT[product] - position))
 
             if len(order_depth.buy_orders) > 0:
                 best_bid = max(order_depth.buy_orders.keys())
                 best_bid_volume = order_depth.buy_orders[best_bid]
                 if best_bid > acceptable_price:
-                    print("SELL", str(best_bid_volume) + "x", best_bid)
+                    # print("SELL", str(best_bid_volume) + "x", best_bid)
                     orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, self.POSITION_LIMIT[product] + position))))
+                    self.ama_order = max(0,min(best_bid_volume, self.POSITION_LIMIT[product] + position))
+
+                # print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {acceptable_price}')
 
             result[product] = orders
-
+        
         return result
