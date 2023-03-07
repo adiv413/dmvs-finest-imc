@@ -70,7 +70,7 @@ class Trader:
                 self.prices["avg_prices"][product].append(mcginley_price)
             
                 try:
-                    position = state.positions[product]
+                    position = state.position[product]
                 except:
                     position = 0
 
@@ -83,17 +83,18 @@ class Trader:
                     best_ask_volume = order_depth.sell_orders[best_ask]
 
                     if best_ask < acceptable_price:
-                        print("BUY", str(-best_ask_volume) + "x", best_ask)
+                        # print("BUY", str(-best_ask_volume) + "x", best_ask)
                         orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, self.POSITION_LIMIT[product] - position))))
 
                 if len(order_depth.buy_orders) > 0:
                     best_bid = max(order_depth.buy_orders.keys())
                     best_bid_volume = order_depth.buy_orders[best_bid]
                     if best_bid > acceptable_price:
-                        print("SELL", str(best_bid_volume) + "x", best_bid)
+                        # print("SELL", str(best_bid_volume) + "x", best_bid)
                         orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, self.POSITION_LIMIT[product] + position))))
 
-                print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {acceptable_price}')
+                # print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {acceptable_price}')
+                print(f'position for {product} is {position}')
 
                 result[product] = orders
 
