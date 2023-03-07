@@ -55,13 +55,8 @@ class Trader:
                 except:
                     position = 0
                 
-                # TODO: maybe account for ama here? either through not including ama positioning in total position or through multiplying by some ama factor directly
-                skew = round(-position * self.RISK_ADJUSTMENT[product]) if self.ama_order == 0 else round(-position * self.RISK_ADJUSTMENT[product] * (1 - self.ama_order / 20))
-                # skew = round(-position * self.RISK_ADJUSTMENT[product]) #if self.ama_order == 0 else round(-position * self.RISK_ADJUSTMENT[product] * (1 - self.ama_order / 20))
-                # skew = round(-position * self.RISK_ADJUSTMENT[product]) if self.ama_order == 0 else round(-position * self.RISK_ADJUSTMENT[product] * (1 - self.ama_order / 20))
-
-                # multiply by constant?
-                # adjust risk_adjustment?
+                # Account for AMA positioning; "chopping off the icicles"
+                skew = round(-position * self.RISK_ADJUSTMENT[product]) if self.ama_order == 0 else round(-position * self.RISK_ADJUSTMENT[product] * max((1 - self.ama_order / 15), 0.01))
 
                 # buy_quote = value + (skew - spread/2+0.01)
                 # sell_quote = value + (skew + spread/2-0.01)
