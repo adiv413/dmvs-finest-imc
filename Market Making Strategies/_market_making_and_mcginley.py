@@ -47,13 +47,9 @@ class Trader:
                     own_trades = state.own_trades[product]
                 except:
                     own_trades = []
-                try:
-                    position = state.position[product]
-                except:
-                    position = 0
                 ##############################
 
-                ## CALCULATING THE POSITION SIZE OF MARKET MAKING
+                ## CALCULATING THE POSITION OF MARKET MAKING
                 for trade in own_trades:
                     if trade.timestamp == self.LAST_TIMESTAMP:
                         if trade.buyer == "SUBMISSION" and trade.price == self.MM_LAST_ORDER_PRICE[product]["BUY"]:
@@ -62,14 +58,13 @@ class Trader:
                             self.MM_POSITION[product] -= trade.quantity
                 ##############################
 
-                ## CALCULATING THE POSITION SIZE OF MCGINLEY
+                ## CALCULATING THE POSITION OF MCGINLEY
                 for trade in own_trades:
                     if trade.timestamp == self.LAST_TIMESTAMP:
                         if trade.buyer == "SUBMISSION" and trade.price == self.MCGINLEY_LAST_ORDER_PRICE[product]["BUY"]:
                             self.MCGINLEY_POSITION[product] += trade.quantity
                         elif trade.seller == "SUBMISSION" and trade.price == self.MCGINLEY_LAST_ORDER_PRICE[product]["SELL"]:
                             self.MCGINLEY_POSITION[product] -= trade.quantity
-
                 ##############################
 
                 ## CALCULATING STATS
@@ -140,7 +135,7 @@ class Trader:
                     self.MCGINLEY_LAST_ORDER_PRICE[product]["SELL"] = 0
                 ##############################
                 
-                
+                ## PRINTING KEY STATS
                 print(f'{product}:')
                 
                 try:
@@ -149,8 +144,10 @@ class Trader:
                     position = 0
                 
                 print(f'Actual position: {position}')
+                print(f'MM position + MCGINLEY position: {self.MM_POSITION[product] + self.MCGINLEY_POSITION[product]}')
                 print('Estimated MM position: ', self.MM_POSITION[product])
                 print('Estimated MCGINLEY position: ', self.MCGINLEY_POSITION[product])
+                ##############################
                 
                 result[product] = orders
 
