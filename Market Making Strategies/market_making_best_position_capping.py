@@ -17,7 +17,7 @@ class Trader:
     HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
     MM_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
     MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
-    MM_LAST_ORDER_PRICE = {"BANANAS" : dict, "PEARLS" : dict}
+    MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
     LAST_TIMESTAMP = -100000
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
@@ -48,7 +48,7 @@ class Trader:
                 orders.append(Order(product, buy_quote, max(0,min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] - position))))
                 orders.append(Order(product, sell_quote, -max(0,min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] + position))))
 
-                
+    
                 print(f'{product}:')
                 try:
                     own_trades = state.own_trades[product]
