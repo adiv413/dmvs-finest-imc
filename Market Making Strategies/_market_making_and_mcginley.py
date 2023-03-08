@@ -45,7 +45,6 @@ class Trader:
             order_depth: OrderDepth = state.order_depths[product]
 
             if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
-                
                 ##GET TRADES
                 try:
                     own_trades = state.own_trades[product]
@@ -53,7 +52,7 @@ class Trader:
                     own_trades = []
                 ##############################
 
-                ## CALCULATING THE POSITION OF MARKET MAKING
+                ## CALCULATING THE POSITION SIZE OF MARKET MAKING
                 for trade in own_trades:
                     if trade.timestamp == self.LAST_TIMESTAMP:
                         if trade.buyer == "SUBMISSION" and trade.price == self.MM_LAST_ORDER_PRICE[product]["BUY"]:
@@ -62,7 +61,7 @@ class Trader:
                             self.MM_POSITION[product] -= trade.quantity
                 ##############################
 
-                ## CALCULATING THE POSITION OF MCGINLEY
+                ## CALCULATING THE POSITION SIZE OF MCGINLEY
                 for trade in own_trades:
                     if trade.timestamp == self.LAST_TIMESTAMP:
                         if trade.buyer == "SUBMISSION" and trade.price == self.MCGINLEY_LAST_ORDER_PRICE[product]["BUY"]:
@@ -86,6 +85,10 @@ class Trader:
                 ##############################
 
                 ## MCGINLEY STRATEGY
+                if state.timestamp != 0:
+                    mcginley_price = self.prices["acceptable_price"][product]
+                else:
+                    mcginley_price = value
 
                 if product not in self.prices["asks"]:
                     self.prices["asks"][product] = []
@@ -107,11 +110,10 @@ class Trader:
                     # don't place orders in the first iteration
                     result[product] = orders
                     return result
-                
-                mcginley_price = self.prices["acceptable_price"][product]
-                mcginley_price = mcginley_price + (curr_price-mcginley_price)/(k * n * (curr_price/mcginley_price)**4)
-                self.prices["acceptable_price"][product] = mcginley_price
 
+                mcginley_price = mcginley_price + (curr_price-mcginley_price)/(k * n * (curr_price/mcginley_price)**4)
+
+                self.prices["acceptable_price"][product] = mcginley_price
                 self.prices["avg_prices"][product].append(mcginley_price)
             
                 acceptable_price = self.prices["acceptable_price"][product]
@@ -139,7 +141,7 @@ class Trader:
                     self.MCGINLEY_LAST_ORDER_PRICE[product]["SELL"] = 0
                 ##############################
                 
-                ## PRINTING KEY STATS
+                ## PRINT STATS
                 print(f'{product}:')
                 
                 try:
@@ -148,7 +150,6 @@ class Trader:
                     position = 0
                 
                 print(f'Actual position: {position}')
-                print(f'MM position + MCGINLEY position: {self.MM_POSITION[product] + self.MCGINLEY_POSITION[product]}')
                 print('Estimated MM position: ', self.MM_POSITION[product])
                 print('Estimated MCGINLEY position: ', self.MCGINLEY_POSITION[product])
                 ##############################
