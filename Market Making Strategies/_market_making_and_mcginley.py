@@ -120,14 +120,14 @@ class Trader:
                 ##############################
 
                 ## MCGINLEY ORDERS
-                if best_ask < acceptable_price and best_ask != buy_quote:
+                if best_ask < acceptable_price and best_ask != buy_quote: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
                     # print("BUY", str(-best_ask_volume) + "x", best_ask)
                     orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, self.MCGINLEY_POSITION_LIMIT[product] - self.MCGINLEY_POSITION[product]))))
                     self.MCGINLEY_LAST_ORDER_PRICE[product]["BUY"] = best_ask
                 else:
                     self.MCGINLEY_LAST_ORDER_PRICE[product]["BUY"] = 0
 
-                if best_bid > acceptable_price and best_bid != sell_quote:
+                if best_bid > acceptable_price and best_bid != sell_quote: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
                     # print("SELL", str(best_bid_volume) + "x", best_bid)
                     orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, self.MCGINLEY_POSITION_LIMIT[product] + self.MCGINLEY_POSITION[product]))))
                     self.MCGINLEY_LAST_ORDER_PRICE[product]["SELL"] = best_bid
