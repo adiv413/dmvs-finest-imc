@@ -37,12 +37,13 @@ class OrderDepth:
 
 
 class Trade:
-    def __init__(self, symbol: Symbol, price: int, quantity: int, buyer: UserId = "", seller: UserId = "") -> None:
+    def __init__(self, symbol: Symbol, price: int, quantity: int, timestamp: int, buyer: UserId = "", seller: UserId = "") -> None:
         self.symbol = symbol
         self.price: int = price
         self.quantity: int = quantity
         self.buyer = buyer
         self.seller = seller
+        self.timestamp = timestamp
 
     def __str__(self) -> str:
         return "(" + self.symbol + ", " + self.buyer + " << " + self.seller + ", " + str(self.price) + ", " + str(self.quantity) + ")"

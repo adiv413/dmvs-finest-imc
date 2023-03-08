@@ -54,7 +54,6 @@ class Trader:
                             elif trade.seller == "SUBMISSION":
                                 self.ORDER_COUNT[product] += 1
                                 self.POSITION[product] -= trade.quantity
-                    self.LAST_OWN_TRADE[product] = str(own_trades)
                 except:
                     pass
 
