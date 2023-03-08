@@ -68,21 +68,13 @@ class Trader:
                 self.prices["acceptable_price"][product] = mcginley_price
                 self.prices["avg_prices"][product].append(mcginley_price)
 
-            # set acceptable price
-            acceptable_price = self.prices["acceptable_price"][product]
-
-            # based on pricing, make orders
-            if len(order_depth.sell_orders) > 0:
-                best_ask = min(order_depth.sell_orders.keys())
-                best_ask_volume = order_depth.sell_orders[best_ask]
+                # set acceptable price
+                acceptable_price = self.prices["acceptable_price"][product]
 
                 if best_ask < acceptable_price:
                     print("BUY", str(-best_ask_volume) + "x", best_ask)
                     orders.append(Order(product, best_ask, -best_ask_volume))
 
-            if len(order_depth.buy_orders) > 0:
-                best_bid = max(order_depth.buy_orders.keys())
-                best_bid_volume = order_depth.buy_orders[best_bid]
                 if best_bid > acceptable_price:
                     print("SELL", str(best_bid_volume) + "x", best_bid)
                     orders.append(Order(product, best_bid, -best_bid_volume))

@@ -9,7 +9,7 @@ class Trader:
 
     ## MARKET MAKING PARAMETERS
     RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
-    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 4}
+    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
     HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
     ############################
 

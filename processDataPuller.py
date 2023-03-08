@@ -120,6 +120,7 @@ def plot_spread(product):
 
 
 
+
 if __name__ == '__main__':
     products = processLog('log.txt')
     # ax = plot_product(products[0])
