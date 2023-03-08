@@ -51,6 +51,8 @@ class Trader:
                     position = state.position[product]
                 except:
                     position = 0
+                ##############################
+
                 ## CALCULATING THE POSITION SIZE OF MARKET MAKING
                 for trade in own_trades:
                     if trade.timestamp == self.LAST_TIMESTAMP:
@@ -59,6 +61,7 @@ class Trader:
                         elif trade.seller == "SUBMISSION" and trade.price == self.MM_LAST_ORDER_PRICE[product]["SELL"]:
                             self.MM_POSITION[product] -= trade.quantity
                 ##############################
+
                 ## CALCULATING THE POSITION SIZE OF MCGINLEY
                 for trade in own_trades:
                     if trade.timestamp == self.LAST_TIMESTAMP:
@@ -68,6 +71,7 @@ class Trader:
                             self.MCGINLEY_POSITION[product] -= trade.quantity
 
                 ##############################
+
                 ## CALCULATING STATS
                 best_bid = max(order_depth.buy_orders.keys())
                 best_ask = min(order_depth.sell_orders.keys())
@@ -75,6 +79,7 @@ class Trader:
                 best_ask_volume = order_depth.sell_orders[best_ask]
                 value = (best_ask + best_bid)/2
                 ##############################
+
                 ## MARKET MAKING STRATEGY
                 skew = -self.MM_POSITION[product] * self.RISK_ADJUSTMENT[product]
                 buy_quote = floor(value - self.HALF_SPREAD_SIZE[product] + skew)
@@ -136,7 +141,6 @@ class Trader:
                 ##############################
                 
                 
-
                 print(f'{product}:')
                 
                 try:
