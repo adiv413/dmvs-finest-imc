@@ -12,6 +12,7 @@ class Trader:
     ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 4}
     HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
     ############################
+
     ## MCGINLEY PARAMETERS
     prices = {
         "asks" : {}, 
@@ -23,6 +24,8 @@ class Trader:
             "BANANAS" : 4895
         } 
     }
+    ############################
+
     ## POSITION SIZING PARAMS
     MM_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
     MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
@@ -42,6 +45,7 @@ class Trader:
             order_depth: OrderDepth = state.order_depths[product]
 
             if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
+                
                 ##GET TRADES
                 try:
                     own_trades = state.own_trades[product]
@@ -82,7 +86,6 @@ class Trader:
                 ##############################
 
                 ## MCGINLEY STRATEGY
-                mcginley_price = self.prices["acceptable_price"][product]
 
                 if product not in self.prices["asks"]:
                     self.prices["asks"][product] = []
@@ -104,10 +107,11 @@ class Trader:
                     # don't place orders in the first iteration
                     result[product] = orders
                     return result
-
+                
+                mcginley_price = self.prices["acceptable_price"][product]
                 mcginley_price = mcginley_price + (curr_price-mcginley_price)/(k * n * (curr_price/mcginley_price)**4)
-
                 self.prices["acceptable_price"][product] = mcginley_price
+
                 self.prices["avg_prices"][product].append(mcginley_price)
             
                 acceptable_price = self.prices["acceptable_price"][product]
