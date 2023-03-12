@@ -8,12 +8,12 @@ from math import floor
 class Trader:
 
     ## MARKET MAKING PARAMETERS
-    RISK_ADJUSTMENT = {"BANANAS" : 0.1, "PEARLS" : 0.1}
+    RISK_ADJUSTMENT = {"BANANAS" : 0.10, "PEARLS" : 0.10}
     ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
-    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
+    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 4}
     ############################
 
-    ## MCGINLEY PARAMETERS
+    ## PARAMETERS
     prices = {
         "asks" : {}, 
         "bids" : {},
@@ -22,7 +22,8 @@ class Trader:
         "acceptable_price" : {
             "PEARLS" : 10000,
             "BANANAS" : 4895
-        } 
+        }, 
+        "avg" : {}
     }
     ############################
 
@@ -50,16 +51,11 @@ class Trader:
                     own_trades = state.own_trades[product]
                 except:
                     own_trades = []
-                ##############################
 
-                ## CALCULATING THE POSITION SIZE OF MARKET MAKING
-                for trade in own_trades:
-                    if trade.timestamp == self.LAST_TIMESTAMP:
-                        if trade.buyer == "SUBMISSION" and trade.price == self.MM_LAST_ORDER_PRICE[product]["BUY"]:
-                            self.MM_POSITION[product] += trade.quantity
-                        elif trade.seller == "SUBMISSION" and trade.price == self.MM_LAST_ORDER_PRICE[product]["SELL"]:
-                            self.MM_POSITION[product] -= trade.quantity
-                ##############################
+                try:
+                    position = state.position[product]
+                except:
+                    position = 0
 
                 ## CALCULATING THE POSITION SIZE OF MCGINLEY
                 for trade in own_trades:
@@ -70,11 +66,14 @@ class Trader:
                             self.MCGINLEY_POSITION[product] -= trade.quantity
                 ##############################
 
+                self.MM_POSITION[product] = position - self.MCGINLEY_POSITION[product]
+
                 ## CALCULATING STATS
                 best_bid = max(order_depth.buy_orders.keys())
                 best_ask = min(order_depth.sell_orders.keys())
                 best_bid_volume = order_depth.buy_orders[best_bid]
                 best_ask_volume = order_depth.sell_orders[best_ask]
+                curr_spread = best_ask - best_bid
                 value = (best_ask + best_bid)/2
                 ##############################
 
@@ -119,10 +118,55 @@ class Trader:
                 acceptable_price = self.prices["acceptable_price"][product]
                 ##############################
 
-                ## MARKET MAKING ORDERS
-                orders.append(Order(product, buy_quote, max(0,min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] - self.MM_POSITION[product]))))
-                orders.append(Order(product, sell_quote, -max(0,min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] + self.MM_POSITION[product]))))
-                self.MM_LAST_ORDER_PRICE[product] = {"BUY": buy_quote, "SELL": sell_quote}
+                ## SPIKE DETECTION
+                n = 7
+
+                if product not in self.prices["avg"]:
+                    self.prices["avg"][product] = [value]
+
+                if curr_spread >= 6:
+                    self.prices["avg"][product].append(value)
+                else:
+                    self.prices["avg"][product].append(self.prices["avg"][product][-1])
+
+                i = len(self.prices["avg"][product])
+                n_lookback_index = max(i - n, 0)
+
+                window = self.prices["avg"][product][n_lookback_index:]
+                acceptable_price_spike_detection = sum(window) / len(window)
+                ##############################
+
+                ## MARKET MAKING + SPIKE DETECTION ORDERS
+                # buy_order_volume = 0
+                # sell_order_volume = 0
+                spike_order_made = False
+
+                if best_ask < acceptable_price_spike_detection: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
+                    buy_order_volume = max(0,min(-best_ask_volume, self.MM_POSITION_LIMIT[product] - self.MM_POSITION[product]))
+                    print("BUY SPIKE", str(buy_order_volume) + "x", best_ask)
+                    spike_order_made = True
+                    orders.append(Order(product, best_ask, buy_order_volume))
+
+                if best_bid > acceptable_price_spike_detection: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
+                    sell_order_volume = max(0,min(best_bid_volume, self.MM_POSITION_LIMIT[product] + self.MM_POSITION[product]))
+                    print("SELL SPIKE", str(sell_order_volume) + "x", best_bid)
+                    spike_order_made = True
+                    orders.append(Order(product, best_bid, -sell_order_volume))
+
+                if not spike_order_made:
+                    orders.append(Order(product, buy_quote, max(0,min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] - self.MM_POSITION[product]))))
+                    orders.append(Order(product, sell_quote, -max(0,min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] + self.MM_POSITION[product]))))
+                
+                    print("BUY MM",  \
+                        str(max(0, \
+                            min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] - self.MM_POSITION[product]))) + "x", buy_quote)
+                    
+                    print("SELL MM", \
+                        str(-max(0, \
+                            min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] + self.MM_POSITION[product]))) + "x", sell_quote)
+                
+                
+                    self.MM_LAST_ORDER_PRICE[product] = {"BUY": buy_quote, "SELL": sell_quote}
                 ##############################
 
                 ## MCGINLEY ORDERS
@@ -150,7 +194,7 @@ class Trader:
                     position = 0
                 
                 print(f'Actual position: {position}')
-                print('Estimated MM position: ', self.MM_POSITION[product])
+                print('Estimated MM + SPIKE position: ', self.MM_POSITION[product])
                 print('Estimated MCGINLEY position: ', self.MCGINLEY_POSITION[product])
                 ##############################
                 

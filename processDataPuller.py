@@ -137,6 +137,7 @@ def interSpreadMA(product, window, outliers = 2):
             window_prices = list(zip(list(window_spreads), list(window_prices)))
             #sort the list by spread
             window_prices.sort(key=lambda tup: tup[0])
+            print(window_prices[outliers:])
             #remove the n lowest spread prices
             window_prices = window_prices[outliers:]
             #get the average of the remaining prices
@@ -176,6 +177,12 @@ if __name__ == '__main__':
     #on one plot, show bid, ask, and spread follower for product[0]
     ax = plot_bid_and_ask(products[0])
     ax = overlay_ISMA(ax, products[0], 7, 5)
+
+    #show both
+    plt.show()
+
+    ax = plot_bid_and_ask(products[1])
+    ax = overlay_ISMA(ax, products[1], 7, 5) # window 7 outliers 5
 
     #show both
     plt.show()
