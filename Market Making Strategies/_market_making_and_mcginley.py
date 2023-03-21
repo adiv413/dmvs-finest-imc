@@ -10,7 +10,7 @@ class Trader:
     ## MARKET MAKING PARAMETERS
     RISK_ADJUSTMENT = {"BANANAS" : 0.1, "PEARLS" : 0.1}
     ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
-    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
+    HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3}
     ############################
 
     ## MCGINLEY PARAMETERS
@@ -98,8 +98,8 @@ class Trader:
                 self.prices["asks"][product].append(best_ask)
                 self.prices["bids"][product].append(best_bid)
 
-                n=10
-                k=0.6
+                n=12
+                k=0.67
                 curr_price = value
 
                 # first iteration
@@ -142,21 +142,21 @@ class Trader:
                 ##############################
                 
                 ## PRINT STATS
-                print(f'{product}:')
+                # print(f'{product}:')
                 
                 try:
                     position = state.position[product]
                 except:
                     position = 0
                 
-                print(f'Actual position: {position}')
-                print('Estimated MM position: ', self.MM_POSITION[product])
-                print('Estimated MCGINLEY position: ', self.MCGINLEY_POSITION[product])
+                # print(f'Actual position: {position}')
+                # print('Estimated MM position: ', self.MM_POSITION[product])
+                # print('Estimated MCGINLEY position: ', self.MCGINLEY_POSITION[product])
                 ##############################
                 
                 result[product] = orders
 
         self.LAST_TIMESTAMP = state.timestamp
         
-        print('\n----------------------------------------------------------------------------------------------------\n')
+        # print('\n----------------------------------------------------------------------------------------------------\n')
         return result

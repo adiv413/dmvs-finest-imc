@@ -19,6 +19,8 @@ class Trader:
 
     POSITION_LIMIT = {"BANANAS" : 20, "PEARLS" : 20}
 
+    holdings = 0
+    last_trade = 0
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
@@ -27,6 +29,22 @@ class Trader:
         """
         # Initialize the method output dict as an empty dict
         result = {}
+
+        timestamp = self.last_trade
+        for trades in state.own_trades.values():
+            for trade in trades:
+                if trade.timestamp != self.last_trade:
+                    timestamp = trade.timestamp
+                    if trade.buyer == "SUBMISSION":
+                        self.holdings += trade.price * trade.quantity
+                    else:
+                        self.holdings -= trade.price * trade.quantity
+        self.last_trade = timestamp
+        profit = 0
+        for product in state.position:
+            profit += state.position[product] * (max(state.order_depths[product].buy_orders) + min(state.order_depths[product].sell_orders)) / 2
+        profit -= self.holdings
+        print("," + str(self.holdings))
 
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
@@ -93,14 +111,14 @@ class Trader:
                 best_ask_volume = order_depth.sell_orders[best_ask]
 
                 if best_ask < acceptable_price:
-                    print("BUY", str(-best_ask_volume) + "x", best_ask)
+                    # print("BUY", str(-best_ask_volume) + "x", best_ask)
                     orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, self.POSITION_LIMIT[product] - position))))
 
             if len(order_depth.buy_orders) > 0:
                 best_bid = max(order_depth.buy_orders.keys())
                 best_bid_volume = order_depth.buy_orders[best_bid]
                 if best_bid > acceptable_price:
-                    print("SELL", str(best_bid_volume) + "x", best_bid)
+                    # print("SELL", str(best_bid_volume) + "x", best_bid)
                     orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, self.POSITION_LIMIT[product] + position))))
 
             result[product] = orders

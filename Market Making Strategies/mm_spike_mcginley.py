@@ -9,8 +9,8 @@ class Trader:
 
     ## MARKET MAKING PARAMETERS
     RISK_ADJUSTMENT = {"BANANAS" : 0.10, "PEARLS" : 0.10}
-    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
-    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 4}
+    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 4}
+    HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3}
     ############################
 
     ## PARAMETERS
@@ -28,11 +28,11 @@ class Trader:
     ############################
 
     ## POSITION SIZING PARAMS
-    MM_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
+    MM_POSITION_LIMIT = {"BANANAS" : 8, "PEARLS" : 10}
     MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
     MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
     ############################
-    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
+    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 12, "PEARLS" : 10}
     MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
     MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
     ############################
