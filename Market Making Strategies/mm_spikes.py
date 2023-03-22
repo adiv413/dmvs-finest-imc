@@ -26,8 +26,10 @@ class Trader:
     PRICES = {"BANANAS": [], "PEARLS": []}
     SPREADS = {"BANANAS": [], "PEARLS": []}
 
-    def calc_ISMA(self): #this takes the last SPIKE_WINDOW_SIZE spreads and prices, and removes SPIKE_OUTLIERS prices that are associated with the lowest spreads
+    def calc_ISMA(self, value): #this takes the last SPIKE_WINDOW_SIZE spreads and prices, and removes SPIKE_OUTLIERS prices that are associated with the lowest spreads
 
+        if len(self.PRICES) < self.SPIKE_WINDOW_SIZE:
+            return value
         prices = self.PRICES[-self.SPIKE_WINDOW_SIZE:]
         spreads = self.SPREADS[-self.SPIKE_WINDOW_SIZE:]
         #remove the prices associated with the lowest spreads
@@ -66,11 +68,8 @@ class Trader:
                 # sell_quote = floor(value + self.HALF_SPREAD_SIZE[product] + skew)
 
                 # use spike_SMA as the price to center your spread around
-                try:
-                    spike_SMA = self.calc_ISMA()
-                    value = spike_SMA
-                except:
-                    pass
+                spike_SMA = self.calc_ISMA(value)
+                value = spike_SMA
                 buy_quote = floor(value - self.HALF_SPREAD_SIZE[product] + skew)
                 sell_quote = floor(value + self.HALF_SPREAD_SIZE[product] + skew)
 
