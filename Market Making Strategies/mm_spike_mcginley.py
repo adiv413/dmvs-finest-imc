@@ -9,7 +9,7 @@ class Trader:
 
     ## MARKET MAKING PARAMETERS
     RISK_ADJUSTMENT = {"BANANAS" : 0.10, "PEARLS" : 0.10}
-    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 4}
+    ORDER_VOLUME = {"BANANAS" : 3, "PEARLS" : 3}
     HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3}
     ############################
 
@@ -97,8 +97,8 @@ class Trader:
                 self.prices["asks"][product].append(best_ask)
                 self.prices["bids"][product].append(best_bid)
 
-                n=10
-                k=0.6
+                n=12
+                k=0.67
                 curr_price = value
 
                 # first iteration
