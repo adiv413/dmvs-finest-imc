@@ -8,9 +8,10 @@ from math import floor
 class Trader:
 
     ## MARKET MAKING PARAMETERS
-    RISK_ADJUSTMENT = {"BANANAS" : 0.10, "PEARLS" : 0.10}
-    ORDER_VOLUME = {"BANANAS" : 3, "PEARLS" : 3}
-    HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3}
+    RISK_ADJUSTMENT = {"BANANAS" : 0.10, "PEARLS" : 0.10, "PINA_COLADAS" : 0.10, "COCONUTS" : 0.10}
+    ORDER_VOLUME = {"BANANAS" : 3, "PEARLS" : 3, "PINA_COLADAS" : 3, "COCONUTS" : 3}
+    HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3, "PINA_COLADAS": 3, "COCONUTS": 3}
+
     ############################
 
     ## PARAMETERS
@@ -21,20 +22,23 @@ class Trader:
         "count" : {},
         "acceptable_price" : {
             "PEARLS" : 10000,
-            "BANANAS" : 4895
+            "BANANAS" : 4895,
+            "PINA_COLADAS" : 10000,
+            "COCONUTS" : 4895
         }, 
         "avg" : {}
     }
     ############################
 
-    ## POSITION SIZING PARAMS
-    MM_POSITION_LIMIT = {"BANANAS" : 8, "PEARLS" : 10}
-    MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
-    MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
+    # ## POSITION SIZING PARAMS
+    MM_POSITION_LIMIT = {"BANANAS" : 8, "PEARLS" : 10, "PINA_COLADAS" : 10, "COCONUTS" : 10}
+    MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0, "PINA_COLADAS" : 0, "COCONUTS" : 0}
+    MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}, "PINA_COLADAS" : {"BUY": 0, "SELL": 0}, "COCONUTS" : {"BUY": 0, "SELL": 0}}
     ############################
-    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 12, "PEARLS" : 10}
-    MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
-    MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
+    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 12, "PEARLS" : 10, "PINA_COLADAS" : 10, "COCONUTS" : 10}
+    MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0, "PINA_COLADAS" : 0, "COCONUTS" : 0}
+    MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}, "PINA_COLADAS" : {"BUY": 0, "SELL": 0}, "COCONUTS" : {"BUY": 0, "SELL": 0}}
+
     ############################
     LAST_TIMESTAMP = -100000
 

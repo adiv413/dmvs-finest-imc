@@ -172,18 +172,21 @@ if __name__ == '__main__':
     # ax = overlay_sma(ax, 200, products[0])
     # ax = plot_spread(products[0])
     # ax2 = plot_spread(products[1])
+    # ax = plot_spread(products[2])
+    print(products[1].head())
+    
     # ax2 = plot_product(products[1])
     # print(calc_volatility(products[0]), calc_volatility(products[1]))
     #on one plot, show bid, ask, and spread follower for product[0]
-    ax = plot_bid_and_ask(products[0])
-    ax = overlay_ISMA(ax, products[0], 7, 5)
-
+    # ax = plot_bid_and_ask(products[0])
+    # ax = overlay_ISMA(ax, products[0], 7, 5)
+    ax = plot_spread(products[0])
     #show both
     plt.show()
-
-    ax = plot_bid_and_ask(products[1])
-    ax = overlay_ISMA(ax, products[1], 7, 5) # window 7 outliers 5
-
+    ax = plot_spread(products[2])
+    # ax = plot_bid_and_ask(products[1])
+    # ax = overlay_ISMA(ax, products[1], 7, 5) # window 7 outliers 5
+    # ax2 = plot_spread(products[3])
     #show both
     plt.show()
 
