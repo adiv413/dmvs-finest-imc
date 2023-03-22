@@ -62,6 +62,15 @@ class Trader:
                     position = 0
                 skew = -position * self.RISK_ADJUSTMENT[product]
 
+                # buy_quote = floor(value - self.HALF_SPREAD_SIZE[product] + skew)
+                # sell_quote = floor(value + self.HALF_SPREAD_SIZE[product] + skew)
+
+                # use spike_SMA as the price to center your spread around
+                try:
+                    spike_SMA = self.calc_ISMA()
+                    value = spike_SMA
+                except:
+                    pass
                 buy_quote = floor(value - self.HALF_SPREAD_SIZE[product] + skew)
                 sell_quote = floor(value + self.HALF_SPREAD_SIZE[product] + skew)
 
