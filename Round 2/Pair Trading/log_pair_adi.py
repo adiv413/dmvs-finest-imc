@@ -16,7 +16,7 @@ class Trader:
     WINDOW_SIZE = 200
 
     SCALING_DIVISOR = {"PINA_COLADAS": 1.875, "COCONUTS": 1}
-    POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 300}
+    POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600}
 
     MODE = "NEUTRAL" #the three modes are NEUTRAL, LONG_PINA, and LONG_COCO
 
@@ -83,35 +83,41 @@ class Trader:
             cocoOrders: list[Order] = []
             pinaOrders: list[Order] = []
             if currentLogVal > 2*logStd + logAvg:
-                pinaOrders.append(Order("PINA_COLADAS", pinaLastBid, -max(0,min(pinaLastBidVolume, self.POSITION_LIMIT[product] + pinaPosition))))
-                cocoOrders.append(Order("COCONUTS", cocoLastAsk, max(0,min(-cocoLastBidVolume, self.POSITION_LIMIT[product] - cocoPosition))))
+                pinaOrders.append(Order("PINA_COLADAS", pinaLastBid, -max(0,min(round(pinaLastBidVolume / self.SCALING_DIVISOR["PINA_COLADAS"]), self.POSITION_LIMIT[product] + pinaPosition))))
+                cocoOrders.append(Order("COCONUTS", cocoLastAsk, max(0,min(round(-cocoLastAskVolume / self.SCALING_DIVISOR["COCONUTS"]), self.POSITION_LIMIT[product] - cocoPosition))))
                 print(f'Buy order for coconut at {cocoLastBid}, current coconut price is {cocoPrices[-1]}')
                 self.MODE = "LONG_COCO"
             elif currentLogVal < -2*logStd + logAvg:
-                pinaOrders.append(Order("PINA_COLADAS", pinaLastAsk, max(0,min(-pinaLastAskVolume, self.POSITION_LIMIT[product] - pinaPosition))))
-                cocoOrders.append(Order("COCONUTS", cocoLastBid, -max(0,min(cocoLastBidVolume, self.POSITION_LIMIT[product] + cocoPosition))))
+                pinaOrders.append(Order("PINA_COLADAS", pinaLastAsk, max(0,min(round(-pinaLastAskVolume / self.SCALING_DIVISOR["PINA_COLADAS"]), self.POSITION_LIMIT[product] - pinaPosition))))
+                cocoOrders.append(Order("COCONUTS", cocoLastBid, -max(0,min(round(cocoLastBidVolume / self.SCALING_DIVISOR["COCONUTS"]), self.POSITION_LIMIT[product] + cocoPosition))))
                 print(f'Sell order for coconut at {cocoLastAsk}, current coconut price is {cocoPrices[-1]}')
                 self.MODE = "LONG_PINA"
             elif currentLogVal >= logAvg-1*logStd and self.MODE == "LONG_PINA":
                 #exit position
                 pinaOrders.append(Order("PINA_COLADAS", pinaLastBid, -pinaPosition))
                 cocoOrders.append(Order("COCONUTS", cocoLastAsk, cocoPosition))
+                print("Exiting long pina position")
                 self.MODE = "NEUTRAL"
             elif currentLogVal <= logAvg+1*logStd and self.MODE == "LONG_COCO":
                 #exit position
                 pinaOrders.append(Order("PINA_COLADAS", pinaLastAsk, pinaPosition))
                 cocoOrders.append(Order("COCONUTS", cocoLastBid, -cocoPosition))
+                print("Exiting long coco position")
                 self.MODE = "NEUTRAL"
             elif self.MODE == "NEUTRAL":
                 #continue closing positions
                 if pinaPosition > 0:
-                    pinaOrders.append(Order("PINA_COLADAS", pinaLastAsk, -pinaPosition))
-                elif pinaPosition < 0:
+                    print("neutral close sell pina")
                     pinaOrders.append(Order("PINA_COLADAS", pinaLastBid, -pinaPosition))
+                elif pinaPosition < 0:
+                    print("neutral close buy pina")
+                    pinaOrders.append(Order("PINA_COLADAS", pinaLastAsk, -pinaPosition))
                 if cocoPosition > 0:
-                    cocoOrders.append(Order("COCONUTS", cocoLastAsk, -cocoPosition))
-                elif cocoPosition < 0:
+                    print("neutral close sell coco")
                     cocoOrders.append(Order("COCONUTS", cocoLastBid, -cocoPosition))
+                elif cocoPosition < 0:
+                    print("neutral close buy coco")
+                    cocoOrders.append(Order("COCONUTS", cocoLastAsk, -cocoPosition))
             result["COCONUTS"] = cocoOrders
             result["PINA_COLADAS"] = pinaOrders
             # print("COCONUT POSITION: ", cocoPosition)

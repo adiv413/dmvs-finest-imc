@@ -12,7 +12,7 @@ class Trader:
 
     ## MARKET MAKING PARAMETERS
     RISK_ADJUSTMENT = {"BANANAS" : 0.10, "PEARLS" : 0.10, "PINA_COLADAS" : 0.10, "COCONUTS" : 0.10}
-    ORDER_VOLUME = {"BANANAS" : 3, "PEARLS" : 5, "COCONUTS" : 10, "PINA_COLADAS" : 10}
+    ORDER_VOLUME = {"BANANAS" : 3, "PEARLS" : 5, "COCONUTS" : 0, "PINA_COLADAS" : 0}
     HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3, "COCONUTS": 1, "PINA_COLADAS": 1}
 
     ############################
@@ -29,11 +29,11 @@ class Trader:
     ############################
 
     # ## POSITION SIZING PARAMS
-    MM_POSITION_LIMIT = {"BANANAS" : 8, "PEARLS" : 10, "PINA_COLADAS" : 10, "COCONUTS" : 10}
+    MM_POSITION_LIMIT = {"BANANAS" : 8, "PEARLS" : 10, "PINA_COLADAS" : 0, "COCONUTS" : 0}
     MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0, "PINA_COLADAS" : 0, "COCONUTS" : 0}
     MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}, "PINA_COLADAS" : {"BUY": 0, "SELL": 0}, "COCONUTS" : {"BUY": 0, "SELL": 0}}
     ############################
-    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 12, "PEARLS" : 10, "PINA_COLADAS" : 10, "COCONUTS" : 10}
+    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 12, "PEARLS" : 10, "PINA_COLADAS" : 20, "COCONUTS" : 20}
     MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0, "PINA_COLADAS" : 0, "COCONUTS" : 0}
     MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}, "PINA_COLADAS" : {"BUY": 0, "SELL": 0}, "COCONUTS" : {"BUY": 0, "SELL": 0}}
 
@@ -43,7 +43,9 @@ class Trader:
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         result = {}
 
-        for product in state.order_depths.keys():
+        
+
+        for product in ["BANANAS, PEARLS"]:
             orders: list[Order] = []
             order_depth: OrderDepth = state.order_depths[product]
 
