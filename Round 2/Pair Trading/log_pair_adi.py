@@ -73,6 +73,8 @@ class Trader:
             except:
                 pinaPosition = 0
 
+            print("position", pinaPosition, cocoPosition)
+
             #calculate the log average price of pinaPrics/cocoPrices
             logValues = [log(pinaPrices[i]/cocoPrices[i]) for i in range(len(pinaPrices))]
             logAvg = sum(logValues)/len(logValues)
@@ -83,23 +85,27 @@ class Trader:
             cocoOrders: list[Order] = []
             pinaOrders: list[Order] = []
             if currentLogVal > 2*logStd + logAvg:
+                print("log", currentLogVal, logAvg, logStd, 2*logStd + logAvg)
                 pinaOrders.append(Order("PINA_COLADAS", pinaLastBid, -max(0,min(round(pinaLastBidVolume / self.SCALING_DIVISOR["PINA_COLADAS"]), self.POSITION_LIMIT[product] + pinaPosition))))
                 cocoOrders.append(Order("COCONUTS", cocoLastAsk, max(0,min(round(-cocoLastAskVolume / self.SCALING_DIVISOR["COCONUTS"]), self.POSITION_LIMIT[product] - cocoPosition))))
-                print(f'Buy order for coconut at {cocoLastBid}, current coconut price is {cocoPrices[-1]}')
+                print(f'Buy order for coconut at {cocoLastAsk}, current coconut price is {cocoPrices[-1]}', max(0,min(round(-cocoLastAskVolume / self.SCALING_DIVISOR["COCONUTS"]), self.POSITION_LIMIT[product] - cocoPosition)))
                 self.MODE = "LONG_COCO"
             elif currentLogVal < -2*logStd + logAvg:
+                print("log", currentLogVal, logAvg, logStd, 2*logStd + logAvg)
                 pinaOrders.append(Order("PINA_COLADAS", pinaLastAsk, max(0,min(round(-pinaLastAskVolume / self.SCALING_DIVISOR["PINA_COLADAS"]), self.POSITION_LIMIT[product] - pinaPosition))))
                 cocoOrders.append(Order("COCONUTS", cocoLastBid, -max(0,min(round(cocoLastBidVolume / self.SCALING_DIVISOR["COCONUTS"]), self.POSITION_LIMIT[product] + cocoPosition))))
-                print(f'Sell order for coconut at {cocoLastAsk}, current coconut price is {cocoPrices[-1]}')
+                print(f'Sell order for coconut at {cocoLastBid}, current coconut price is {cocoPrices[-1]}', -max(0,min(round(cocoLastBidVolume / self.SCALING_DIVISOR["COCONUTS"]), self.POSITION_LIMIT[product] + cocoPosition)))
                 self.MODE = "LONG_PINA"
             elif currentLogVal >= logAvg-1*logStd and self.MODE == "LONG_PINA":
                 #exit position
+                print("log", currentLogVal, logAvg, logStd, 2*logStd + logAvg)
                 pinaOrders.append(Order("PINA_COLADAS", pinaLastBid, -pinaPosition))
                 cocoOrders.append(Order("COCONUTS", cocoLastAsk, cocoPosition))
                 print("Exiting long pina position")
                 self.MODE = "NEUTRAL"
             elif currentLogVal <= logAvg+1*logStd and self.MODE == "LONG_COCO":
                 #exit position
+                print("log", currentLogVal, logAvg, logStd, 2*logStd + logAvg)
                 pinaOrders.append(Order("PINA_COLADAS", pinaLastAsk, pinaPosition))
                 cocoOrders.append(Order("COCONUTS", cocoLastBid, -cocoPosition))
                 print("Exiting long coco position")
