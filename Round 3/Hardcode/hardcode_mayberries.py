@@ -4,6 +4,7 @@ from math import log
 import json
 
 
+
 class Logger:
     def __init__(self) -> None:
         self.logs = ""
@@ -25,6 +26,7 @@ logger = Logger()
 
 class Trader:
     timestep = 0
+    POSITION_LIMIT = {"BANANAS": 10, "PEARLS": 10, "BERRIES": 250}
 
     stats = {
         "asks" : {}, 
@@ -70,15 +72,21 @@ class Trader:
             self.stats["count"][product] += 1
             self.stats["askVolumes"][product].append(best_ask_volume)
             self.stats["bidVolumes"][product].append(best_bid_volume)
-        
-        #check if one of the counts is greater than the window size
-            if(product == "MAYBERRIES"):
+
+            try:
+                position = state.position[product]
+            except:
+                position = 0
+
+            if(product == "BERRIES"):
                 # BUY at timestep of 300k, sell at timestep of 500k
-                start, end, range = 300000, 500000, 20000
+                start, end, range = 1000, 6000, 100
                 if(self.timestep >= start and self.timestep <= start + range):
-                    result["MAYBERRIES"] = Order("MAYBERRIES", "BUY", best_ask, best_ask_volume)
+                    result["BERRIES"] = Order("BERRIES", "BUY", best_ask, max(
+                        0, min(-best_ask_volume, self.POSITION_LIMIT[product] - position)))
                 elif(self.timestep >= end and self.timestep <= end + range):
-                    result["MAYBERRIES"] = Order("MAYBERRIES", "SELL", best_bid, best_bid_volume)
+                    result["BERRIES"] = Order("BERRIES", "SELL", best_bid, -max(
+                        0, min(best_bid_volume, self.POSITION_LIMIT[product] + position)))
         self.timestep += 1
         logger.flush(state, result)
         return result
