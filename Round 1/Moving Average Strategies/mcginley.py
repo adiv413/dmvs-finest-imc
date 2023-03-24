@@ -6,7 +6,6 @@ from datamodel import OrderDepth, TradingState, Order
 
 class Trader:
 
-    POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
     prices = {
         "asks" : {}, 
         "bids" : {},
@@ -47,8 +46,8 @@ class Trader:
                 self.prices["asks"][product].append(best_ask)
                 self.prices["bids"][product].append(best_bid)
 
-                n = 10
-                k = 0.6
+                n = 20
+                k = 0.65
                 get_avg_price = lambda x : (self.prices["asks"][product][x] + self.prices["bids"][product][x]) / 2 # gets average price at index
                 curr_price = (best_ask + best_bid) / 2 
 
@@ -68,33 +67,20 @@ class Trader:
 
                 self.prices["acceptable_price"][product] = mcginley_price
                 self.prices["avg_prices"][product].append(mcginley_price)
-            
-                try:
-                    position = state.positions[product]
-                except:
-                    position = 0
 
                 # set acceptable price
                 acceptable_price = self.prices["acceptable_price"][product]
 
-                # based on pricing, make orders
-                if len(order_depth.sell_orders) > 0:
-                    best_ask = min(order_depth.sell_orders.keys())
-                    best_ask_volume = order_depth.sell_orders[best_ask]
+                if best_ask < acceptable_price:
+                    print("BUY", str(-best_ask_volume) + "x", best_ask)
+                    orders.append(Order(product, best_ask, -best_ask_volume))
 
-                    if best_ask < acceptable_price:
-                        print("BUY", str(-best_ask_volume) + "x", best_ask)
-                        orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, self.POSITION_LIMIT[product] - position))))
+                if best_bid > acceptable_price:
+                    print("SELL", str(best_bid_volume) + "x", best_bid)
+                    orders.append(Order(product, best_bid, -best_bid_volume))
 
-                if len(order_depth.buy_orders) > 0:
-                    best_bid = max(order_depth.buy_orders.keys())
-                    best_bid_volume = order_depth.buy_orders[best_bid]
-                    if best_bid > acceptable_price:
-                        print("SELL", str(best_bid_volume) + "x", best_bid)
-                        orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, self.POSITION_LIMIT[product] + position))))
+            print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {acceptable_price}')
 
-                print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {acceptable_price}')
-
-                result[product] = orders
+            result[product] = orders
 
         return result

@@ -1,5 +1,4 @@
 #https://kollider.medium.com/build-a-crypto-market-making-bot-in-python-d71eeae2dcd7
-#https://kaabar-sofien.medium.com/the-mcginley-moving-average-6d16ccdaa6ee
 #https://www.reddit.com/r/algotrading/comments/6q8dp6/market_making_theory_and_application_readings/
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order
@@ -7,7 +6,7 @@ from datamodel import OrderDepth, TradingState, Order
 
 class Trader:
     # PROFIT_TARGET = 1
-    #BEST
+    # BEST:
     # RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
     # ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
     # HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
@@ -41,8 +40,7 @@ class Trader:
             orders: list[Order] = []
             # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS
             order_depth: OrderDepth = state.order_depths[product]
-            mcginley_price = self.prices["acceptable_price"][product]
-            
+
             if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
                 best_bid = max(order_depth.buy_orders.keys())
 
@@ -64,8 +62,6 @@ class Trader:
                 orders.append(Order(product, buy_quote, self.ORDER_VOLUME[product]))
                 orders.append(Order(product, sell_quote, -self.ORDER_VOLUME[product]))
 
-                #АМА: 
-
                 best_ask = min(order_depth.sell_orders.keys())
                 best_ask_volume = order_depth.sell_orders[best_ask]
                 best_bid = max(order_depth.buy_orders.keys())
@@ -80,7 +76,6 @@ class Trader:
                 self.prices["bids"][product].append(best_bid)
 
                 n = 10
-                k = 0.6
                 get_avg_price = lambda x : (self.prices["asks"][product][x] + self.prices["bids"][product][x]) / 2 # gets average price at index
                 curr_price = (best_ask + best_bid) / 2 
 
@@ -96,10 +91,22 @@ class Trader:
                 i = len(self.prices["avg_prices"][product]) - 1 # index of current price
                 n_lookback_index = max(i - n, 0) # make sure we don't accidentally lookback into the negative indices
 
-                mcginley_price = mcginley_price + (curr_price-mcginley_price)/(k * n * (curr_price/mcginley_price)**4)
+                direction = curr_price - get_avg_price(n_lookback_index) # today's price - price n bars back
+                volatility = sum([abs(get_avg_price(j) - get_avg_price(j - 1)) for j in range(i, n_lookback_index, -1)])
+                
+                if volatility == 0:
+                    efficiency_ratio = 0
+                else:
+                    efficiency_ratio = abs(direction / volatility)
 
-                self.prices["acceptable_price"][product] = mcginley_price
-                self.prices["avg_prices"][product].append(mcginley_price)
+                fast_ema_ratio = 2 / (2 + 1) # 2 / (k + 1) where k is small bucket (2 by default)
+                slow_ema_ratio = 2 / (30 + 1) # 2 / (l + 1) where l is large bucket (30 by default)
+                scaling_constant = (efficiency_ratio * (fast_ema_ratio - slow_ema_ratio) + slow_ema_ratio) ** 2
+
+                curr_average = scaling_constant * (curr_price - self.prices["acceptable_price"][product]) + self.prices["acceptable_price"][product]
+
+                self.prices["acceptable_price"][product] = curr_average
+                self.prices["avg_prices"][product].append(curr_average)
 
             # set acceptable price
             acceptable_price = self.prices["acceptable_price"][product]

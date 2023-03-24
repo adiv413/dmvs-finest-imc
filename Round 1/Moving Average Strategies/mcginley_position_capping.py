@@ -18,10 +18,6 @@ class Trader:
         } 
     }
 
-    RISK_ADJUSTMENT = {"BANANAS" : 0.12, "PEARLS" : 0.12}
-    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 4}
-    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
-
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
         Only method required. It takes all buy and sell orders for all symbols as an input,
@@ -35,33 +31,13 @@ class Trader:
             order_depth: OrderDepth = state.order_depths[product]
             orders: list[Order] = []
 
-
             mcginley_price = self.prices["acceptable_price"][product]
 
             if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0: # if there are orders in the market, recompute acceptable price
-
                 best_ask = min(order_depth.sell_orders.keys())
                 best_ask_volume = order_depth.sell_orders[best_ask]
                 best_bid = max(order_depth.buy_orders.keys())
                 best_bid_volume = order_depth.buy_orders[best_bid]
-                value = (best_ask + best_bid) / 2
-
-                try:
-                    position = state.position[product]
-                except:
-                    position = 0
-                    
-                skew = -position * self.RISK_ADJUSTMENT[product]
-
-                # buy_quote = value + (skew - spread/2+0.01)
-                # sell_quote = value + (skew + spread/2-0.01)
-                buy_quote = value - self.HALF_SPREAD_SIZE[product] + skew
-                sell_quote = value + self.HALF_SPREAD_SIZE[product] + skew
-    
-                orders.append(Order(product, buy_quote, self.ORDER_VOLUME[product]))
-                orders.append(Order(product, sell_quote, -self.ORDER_VOLUME[product]))
-
-
 
                 if product not in self.prices["asks"]:
                     self.prices["asks"][product] = []
@@ -92,7 +68,11 @@ class Trader:
 
                 self.prices["acceptable_price"][product] = mcginley_price
                 self.prices["avg_prices"][product].append(mcginley_price)
-
+            
+                try:
+                    position = state.position[product]
+                except:
+                    position = 0
 
                 # set acceptable price
                 acceptable_price = self.prices["acceptable_price"][product]
@@ -103,17 +83,18 @@ class Trader:
                     best_ask_volume = order_depth.sell_orders[best_ask]
 
                     if best_ask < acceptable_price:
-                        print("BUY", str(-best_ask_volume) + "x", best_ask)
+                        # print("BUY", str(-best_ask_volume) + "x", best_ask)
                         orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, self.POSITION_LIMIT[product] - position))))
 
                 if len(order_depth.buy_orders) > 0:
                     best_bid = max(order_depth.buy_orders.keys())
                     best_bid_volume = order_depth.buy_orders[best_bid]
                     if best_bid > acceptable_price:
-                        print("SELL", str(best_bid_volume) + "x", best_bid)
+                        # print("SELL", str(best_bid_volume) + "x", best_bid)
                         orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, self.POSITION_LIMIT[product] + position))))
 
-                print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {acceptable_price}')
+                # print(f'{product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {acceptable_price}')
+                print(f'position for {product} is {position}')
 
                 result[product] = orders
 

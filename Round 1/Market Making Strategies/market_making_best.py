@@ -16,6 +16,7 @@ class Trader:
     HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
     
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
+        print('\n')
         """
         Only method required. It takes all buy and sell orders for all symbols as an input,
         and outputs a list of orders to be sent
@@ -49,8 +50,20 @@ class Trader:
                 orders.append(Order(product, buy_quote, self.ORDER_VOLUME[product]))
                 orders.append(Order(product, sell_quote, -self.ORDER_VOLUME[product]))
 
-                print(f'position: {position}')
+                # print(f'position: {position}')'
+                try:
+                    print(f'own trades for {product}: {state.own_trades[product]}')
+                except:
+                    print(f'no trades for {product}')
+
+                print(f'net position for {product}: {position}')
+
+                print('\n')
+
+                print(f'buy order for {product} at {buy_quote} with volume {self.ORDER_VOLUME[product]}')
+                print(f'sell order for {product} at {sell_quote} with volume {-self.ORDER_VOLUME[product]}')
 
                 result[product] = orders
         
+        print('\n----------------------------------------------------------------------------------------------------\n')
         return result
