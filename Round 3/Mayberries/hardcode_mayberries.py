@@ -80,15 +80,15 @@ class Trader:
 
             if(product == "BERRIES"):
                 # BUY at timestep of 300k, sell at timestep of 500k
-                # logger.print(self.timestep)
+                logger.print(self.timestep)
                 start, end = 10000, 30000
                 if(timestep >= start and self.timestep <= end):
                     result["BERRIES"] = Order("BERRIES", "BUY", best_ask, self.POSITION_LIMIT[product] - position)
-                    # logger.print("BUYING BUYING BUYING")
+                    logger.print("BUYING BUYING BUYING")
                     print(f'BUYING: Current position = {position}')
                 elif(timestep >= end):
                     result["BERRIES"] = Order("BERRIES", "SELL", best_bid, -(min(self.POSITION_LIMIT[product], self.POSITION_LIMIT[product] + position)))
-                    # logger.print("I AM IN THE RANGE")
+                    logger.print("I AM IN THE RANGE")
                     print(f'SELLING: Current position = {position}')
-        # logger.flush(state, result)
+        logger.flush(state, result)
         return result
