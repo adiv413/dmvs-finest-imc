@@ -5,27 +5,27 @@ import json
 
 
 
-class Logger:
-    def __init__(self) -> None:
-        self.logs = ""
+# class Logger:
+#     def __init__(self) -> None:
+#         self.logs = ""
 
-    def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
-        self.logs += sep.join(map(str, objects)) + end
+#     def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
+#         self.logs += sep.join(map(str, objects)) + end
 
-    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
-        print(json.dumps({
-            "state": state,
-            "orders": orders,
-            "logs": self.logs,
-        }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
+#     def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
+#         print(json.dumps({
+#             "state": state,
+#             "orders": orders,
+#             "logs": self.logs,
+#         }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
 
-        self.logs = ""
+#         self.logs = ""
 
 
-logger = Logger()
+# logger = Logger()
 
 class Trader:
-    POSITION_LIMIT = {"BANANAS": 10, "PEARLS": 10, "BERRIES": 250}
+    POSITION_LIMIT = {"BERRIES": 250}
 
     stats = {
         "asks" : {}, 
@@ -36,12 +36,6 @@ class Trader:
         "count" : {}
     }
 
-    WINDOW_SIZE = 200
-
-    SCALING_DIVISOR = {"PINA_COLADAS": 1.875, "COCONUTS": 1}
-    POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 300}
-    MODE = "NEUTRAL"  # the three modes are NEUTRAL, LONG_PINA, and LONG_COCO
-
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
         Only method required. It takes all buy and sell orders for all symbols as an input,
@@ -51,8 +45,12 @@ class Trader:
         result = {}
         order_depth: OrderDepth = state.order_depths
 
+        # print all the products
+        # print(order_depth.keys())
+        for product in [key for key in self.POSITION_LIMIT.keys()]:
 
-        for product in [key for key in state.order_depths.keys() if key in self.POSITION_LIMIT.keys()]:
+            orders: List[Order] = []
+
             best_ask = min(order_depth[product].sell_orders.keys())
             best_ask_volume = order_depth[product].sell_orders[best_ask]
             best_bid = max(order_depth[product].buy_orders.keys())
@@ -77,18 +75,20 @@ class Trader:
                 position = state.position[product]
             except:
                 position = 0
-
-            if(product == "BERRIES"):
+            # print(product)
+            # print(timestep)
+            if product == "BERRIES":
                 # BUY at timestep of 300k, sell at timestep of 500k
-                logger.print(self.timestep)
-                start, end = 10000, 30000
-                if(timestep >= start and self.timestep <= end):
-                    result["BERRIES"] = Order("BERRIES", "BUY", best_ask, self.POSITION_LIMIT[product] - position)
-                    logger.print("BUYING BUYING BUYING")
+                # logger.print(self.timestep)
+                start, end = 300000, 500000
+                if(timestep >= start and timestep < end):
+                    orders.append(Order("BERRIES", best_ask, self.POSITION_LIMIT[product] - position))
+                    # logger.print("BUYING BUYING BUYING")
                     print(f'BUYING: Current position = {position}')
                 elif(timestep >= end):
-                    result["BERRIES"] = Order("BERRIES", "SELL", best_bid, -(min(self.POSITION_LIMIT[product], self.POSITION_LIMIT[product] + position)))
-                    logger.print("I AM IN THE RANGE")
+                    orders.append(Order("BERRIES", best_bid, -(min(self.POSITION_LIMIT[product], self.POSITION_LIMIT[product] + position))))
+                    # logger.print("I AM IN THE RANGE")
                     print(f'SELLING: Current position = {position}')
-        logger.flush(state, result)
+            result["BERRIES"] = orders
+        # logger.flush(state, result)
         return result

@@ -3,7 +3,7 @@ from datamodel import OrderDepth, TradingState, Order
 
 #this code will not execute any trades. It will just be inputted into the alg and will be used to download the data free of any intervention from our algorithm.
 class Trader:
-    
+    products = ["DIVING_GEAR"]
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
         Only method required. It takes all buy and sell orders for all symbols as an input,
@@ -14,7 +14,7 @@ class Trader:
 
         # Iterate over all the keys (the available products) contained in the order depths
         skipTimeStamp = True
-        for product in state.order_depths.keys():
+        for product in self.products:
             timestamp = state.timestamp
             order_depth: OrderDepth = state.order_depths[product]
 
@@ -34,6 +34,8 @@ class Trader:
                 print(f', {product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {spread}')
             else:
                 print(f'{timestamp} , {product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {spread}')
+            
+            print(f'{timestamp}, {state.observations}')
 
             
         return result
