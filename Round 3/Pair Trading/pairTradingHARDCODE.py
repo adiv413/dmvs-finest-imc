@@ -17,7 +17,6 @@ class Trader:
 
     SCALING_DIVISOR = {"PINA_COLADAS": 2, "COCONUTS": 1}
     POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600}
-    COCO_ORDER_SIZING = 100
     POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600}
 
     MODE = "NEUTRAL" #the three modes are NEUTRAL, LONG_PINA, and LONG_COCO, PINA_HOLD, and COCO_HOLD
@@ -137,21 +136,22 @@ class Trader:
 
             elif self.MODE == "NEUTRAL": #sell everything to 0
                 if pinaPosition > 0:
-                    pinaOrders.append(Order("PINA_COLADAS", self.stats["asks"]["PINA_COLADAS"][-1], -pinaPosition))
-                    # print(f'Pina colada SELL order placed at quantity {pinaPosition}, seashell amount {pinaPosition*pinaPrice}, and current pina seashell position {pinaPosition*pinaPrice}')
-                elif pinaPosition < 0:
                     pinaOrders.append(Order("PINA_COLADAS", self.stats["bids"]["PINA_COLADAS"][-1], -pinaPosition))
-                    # print(f'Pina colada BUY order placed at quantity {pinaPosition}, seashell amount {pinaPosition*pinaPrice}, and current pina seashell position {pinaPosition*pinaPrice}')
+                    print(f'Pina colada SELL order placed at quantity {-pinaPosition}, price {self.stats["bids"]["PINA_COLADAS"][-1]}')
+                elif pinaPosition < 0:
+                    pinaOrders.append(Order("PINA_COLADAS", self.stats["asks"]["PINA_COLADAS"][-1], -pinaPosition))
+                    print(f'Pina colada BUY order placed at quantity {-pinaPosition}, price {self.stats["asks"]["PINA_COLADAS"][-1]}')
                 if cocoPosition > 0:
-                    cocoOrders.append(Order("COCONUTS", self.stats["asks"]["COCONUTS"][-1], -cocoPosition))
-                    # print(f'Coconut SELL order placed at quantity {cocoPosition}, seashell amount {cocoPosition*cocoPrice}, and current coconut seashell position {cocoPosition*cocoPrice}')
-                elif cocoPosition < 0:
                     cocoOrders.append(Order("COCONUTS", self.stats["bids"]["COCONUTS"][-1], -cocoPosition))
-                    # print(f'Coconut BUY order placed at quantity {cocoPosition}, seashell amount {cocoPosition*cocoPrice}, and current coconut seashell position {cocoPosition*cocoPrice}')
+                    print(f'Coconut SELL order placed at quantity {-cocoPosition}, price {self.stats["bids"]["COCONUTS"][-1]}')
+                elif cocoPosition < 0:
+                    cocoOrders.append(Order("COCONUTS", self.stats["asks"]["COCONUTS"][-1], -cocoPosition))
+                    print(f'Coconut BUY order placed at quantity {-cocoPosition}, price {self.stats["asks"]["COCONUTS"][-1]}')
+                    
             
             print(f'Mode: {self.MODE}')
-            print(f'Pina Position: {pinaPosition*pinaPrice}')
-            print(f'Coco Position: {cocoPosition*cocoPrice}')
+            print(f'Pina Position: {pinaPosition*pinaPrice}, position amount {pinaPosition}')
+            print(f'Coco Position: {cocoPosition*cocoPrice}, position amount {cocoPosition}')
             print(f'log ratio: {currentLogVal}')
 
 
