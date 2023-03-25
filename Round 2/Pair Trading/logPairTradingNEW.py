@@ -153,8 +153,8 @@ class Trader:
                     # print(f'Coconut BUY order placed at quantity {cocoPosition}, seashell amount {cocoPosition*cocoPrice}, and current coconut seashell position {cocoPosition*cocoPrice}')
             
             
-            print(f'Pina Position: {pinaPosition}')
-            print(f'Coco Position: {cocoPosition}')
+            print(f'Pina Position: {pinaPosition*pinaPrice}')
+            print(f'Coco Position: {cocoPosition*cocoPrice}')
 
 
             result["PINA_COLADAS"] = pinaOrders
