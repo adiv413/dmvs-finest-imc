@@ -11,7 +11,7 @@ for i in lines:
     x = [j.strip() for j in x if j != '']
     if x[2] not in products:
         products[x[2]] = []
-    products[x[2]].append(float(x[-2]))
+    products[x[2]].append(float(x[-1]))
 
 for i in products.keys():
     plt.plot(products[i])
