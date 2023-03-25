@@ -80,13 +80,16 @@ class Trader:
 
             if(product == "BERRIES"):
                 # BUY at timestep of 300k, sell at timestep of 500k
+                logger.print(self.timestep)
                 start, end, range = 1000, 6000, 100
                 if(self.timestep >= start and self.timestep <= start + range):
                     result["BERRIES"] = Order("BERRIES", "BUY", best_ask, max(
                         0, min(-best_ask_volume, self.POSITION_LIMIT[product] - position)))
+                    logger.print("I AM IN THE RANGE")
                 elif(self.timestep >= end and self.timestep <= end + range):
                     result["BERRIES"] = Order("BERRIES", "SELL", best_bid, -max(
                         0, min(best_bid_volume, self.POSITION_LIMIT[product] + position)))
+                    logger.print("I AM IN THE RANGE")
         self.timestep += 1
         logger.flush(state, result)
         return result
