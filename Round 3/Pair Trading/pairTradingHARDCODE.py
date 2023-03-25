@@ -17,11 +17,11 @@ class Trader:
 
     SCALING_DIVISOR = {"PINA_COLADAS": 2, "COCONUTS": 1}
     POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600}
-    ORDER_SIZING = 100
+    COCO_ORDER_SIZING = 100
     POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600}
 
-    MODE = "NEUTRAL" #the  modes are NEUTRAL, LONG_PINA, and LONG_COCO, PINA_HOLD, and COCO_HOLD
-    STANDARD_DEVIATIONS = 3
+    MODE = "NEUTRAL" #the three modes are NEUTRAL, LONG_PINA, and LONG_COCO, PINA_HOLD, and COCO_HOLD
+    STANDARD_DEVIATIONS = 0.5
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """
@@ -54,12 +54,8 @@ class Trader:
             self.stats["bidVolumes"][product].append(best_bid_volume)
 
         print("...")
-        pina_spot_price = (self.stats["bids"]["PINA_COLADAS"][-1] + self.stats["asks"]["PINA_COLADAS"][-1])/2
-        coco_spot_price = (self.stats["bids"]["COCONUTS"][-1] + self.stats["asks"]["COCONUTS"][-1])/2
-        print(f'Pina Price: {pina_spot_price}')
-        print(f'Coco Price: {coco_spot_price}')
         #check if one of the counts is greater than the window size
-        if self.stats["count"]["COCONUTS"] > self.WINDOW_SIZE:
+        if True:
             cocoPrices = self.stats["avg_prices"]["COCONUTS"][-self.WINDOW_SIZE:]
             cocoPrice = cocoPrices[-1]
             pinaPrices = self.stats["avg_prices"]["PINA_COLADAS"][-self.WINDOW_SIZE:]
@@ -75,11 +71,10 @@ class Trader:
                 pinaPosition = 0
 
             #calculate the log average price of pinaPrics/cocoPrices
-            logValues = [log(pinaPrices[i]/cocoPrices[i]) for i in range(len(pinaPrices))]
-            logAvg = sum(logValues)/len(logValues)
+            currentLogVal = log(pinaPrices[-1] / cocoPrices[-1])
+            logAvg = 0.6288272247232621
             #calculate the standard deviation of logValues
-            logStd = (sum([(logValues[i] - logAvg)**2 for i in range(len(logValues))])/len(logValues))**0.5
-            currentLogVal = logValues[-1]
+            logStd =  0.002382788768726835
 
             pinaOrders: List[Order] = []
             cocoOrders: List[Order] = []
@@ -154,15 +149,13 @@ class Trader:
                     cocoOrders.append(Order("COCONUTS", self.stats["bids"]["COCONUTS"][-1], -cocoPosition))
                     # print(f'Coconut BUY order placed at quantity {cocoPosition}, seashell amount {cocoPosition*cocoPrice}, and current coconut seashell position {cocoPosition*cocoPrice}')
             
-            
+            print(f'Mode: {self.MODE}')
             print(f'Pina Position: {pinaPosition*pinaPrice}')
             print(f'Coco Position: {cocoPosition*cocoPrice}')
+            print(f'log ratio: {currentLogVal}')
 
 
             result["PINA_COLADAS"] = pinaOrders
-            result["COCONUTS"] = cocoOrders   
-        else:
-            print(f'Pina Position: {0}')
-            print(f'Coco Position: {0}')     
+            result["COCONUTS"] = cocoOrders    
 
         return result
