@@ -12,15 +12,12 @@ class Trader:
         "asks" : {}, 
         "bids" : {},
         "avg_prices" : {},
-        "count" : {},
         "acceptable_price" : {
             "PEARLS" : -1,
             "BANANAS" : -1,
         } ,
         "bidVolumes" : {},
         "askVolumes" : {},
-        "avg_prices" : {},
-        "count" : {}
     }
 
     COUNT = 0
@@ -84,13 +81,11 @@ class Trader:
                 self.stats["asks"][product] = []
                 self.stats["bids"][product] = []
                 self.stats["avg_prices"][product] = []
-                self.stats["count"][product] = 0
                 self.stats["askVolumes"][product] = []
                 self.stats["bidVolumes"][product] = []
             self.stats["asks"][product].append(best_ask)
             self.stats["bids"][product].append(best_bid)
             self.stats["avg_prices"][product].append((best_ask + best_bid)/2)
-            self.stats["count"][product] += 1
             self.stats["askVolumes"][product].append(best_ask_volume)
             self.stats["bidVolumes"][product].append(best_bid_volume)
             # if the length is > 250, remove the first element
@@ -221,12 +216,12 @@ class Trader:
                 # print(f'Diving Gear Mid Price: {self.stats["avg_prices"][product][-1]}')
                 dSighting = state.observations["DOLPHIN_SIGHTINGS"]
                 delta = dSighting - self.LAST_DOLPHIN_SIGHTING
-                print(f'Delta: {delta}')
+                # print(f'Delta: {delta}')
                 if self.COUNT >= self.DOLPHIN_WINDOW2:
                     MA1 = sum(self.stats["avg_prices"][product][-self.DOLPHIN_WINDOW1:])/self.DOLPHIN_WINDOW1
                     MA2 = sum(self.stats["avg_prices"][product][-self.DOLPHIN_WINDOW2:])/self.DOLPHIN_WINDOW2
-                    print(f'MA1: {MA1}')
-                    print(f'MA2: {MA2}')
+                    # print(f'MA1: {MA1}')
+                    # print(f'MA2: {MA2}')
                     if delta < -self.DELTA_LIMIT:
                         self.DOLPHIN_MODE = "NEW_SHORT"
                     elif delta > self.DELTA_LIMIT:
@@ -251,17 +246,17 @@ class Trader:
                     #     self.DOLPHIN_MODE = "NEUTRAL"
                     
                     if self.DOLPHIN_MODE == "NEW_SHORT" or self.DOLPHIN_MODE == "SHORT":
-                        print("SHORTING: Current position = ", position)
+                        # print("SHORTING: Current position = ", position)
                         orders.append(Order("DIVING_GEAR", best_bid, -(min(self.POSITION_LIMIT[product], self.POSITION_LIMIT[product] + position))))      
                     elif self.DOLPHIN_MODE == "NEW_LONG" or self.DOLPHIN_MODE == "LONG":
-                        print("LONGING: Current position = ", position)
+                        # print("LONGING: Current position = ", position)
                         orders.append(Order("DIVING_GEAR", best_ask, self.POSITION_LIMIT[product] - position))
                     elif self.DOLPHIN_MODE == "NEUTRAL":
                         if position > 0:
-                            print("SELLING: Current position = ", position)
+                            # print("SELLING: Current position = ", position)
                             orders.append(Order("DIVING_GEAR", best_bid, -position))
                         elif position < 0:
-                            print("BUYING: Current position = ", position)
+                            # print("BUYING: Current position = ", position)
                             orders.append(Order("DIVING_GEAR", best_ask, -position))
                 self.LAST_DOLPHIN_SIGHTING = dSighting
                 result["DIVING_GEAR"] = orders
@@ -361,6 +356,7 @@ class Trader:
 
             result["PINA_COLADAS"] = pinaOrders
             result["COCONUTS"] = cocoOrders    
+            print(f'pina position value: {pinaPosition*pinaPrice}, coco position value: {cocoPosition*cocoPrice}, net position value: {pinaPosition*pinaPrice + cocoPosition*cocoPrice}')
 
         self.LAST_TIMESTAMP = state.timestamp
         # print('\n----------------------------------------------------------------------------------------------------\n')
