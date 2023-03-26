@@ -13,14 +13,14 @@ class Trader:
         "count" : {}
     }
 
-    WINDOW_SIZE = 500
 
-    SCALING_DIVISOR = {"PINA_COLADAS": 2, "COCONUTS": 1}
     POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600}
     POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600}
 
     MODE = "NEUTRAL" #the three modes are NEUTRAL, LONG_PINA, and LONG_COCO, PINA_HOLD, and COCO_HOLD
     STANDARD_DEVIATIONS = 0.5
+
+    WINDOW_SIZE = 10
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         """

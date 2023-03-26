@@ -29,11 +29,11 @@ class Trader:
     ############################
 
     ## POSITION SIZING PARAMS
-    MM_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
+    MM_POSITION_LIMIT = {"BANANAS" : 8, "PEARLS" : 10}
     MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
     MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
     ############################
-    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
+    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 12, "PEARLS" : 10}
     MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0,}
     MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
     ############################
@@ -46,7 +46,7 @@ class Trader:
             orders: list[Order] = []
             order_depth: OrderDepth = state.order_depths[product]
 
-            if product in self.RISK_ADJUSTMENT.keys():
+            if product in ["PEARLS", "BANANAS"]:
                 ##GET TRADES
                 try:
                     own_trades = state.own_trades[product]
@@ -157,6 +157,8 @@ class Trader:
                 ##############################
                 
                 result[product] = orders
+
+            
 
         self.LAST_TIMESTAMP = state.timestamp
         
