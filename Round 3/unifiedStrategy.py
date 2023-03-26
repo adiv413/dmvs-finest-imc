@@ -62,7 +62,7 @@ class Trader:
     DOLPHIN_WINDOW1 = 100
     DOLPHIN_WINDOW2 = 200
     DOLPHIN_MODE = "NEUTRAL"
-    DELTA_LIMIT = 1
+    DELTA_LIMIT = 5
     ############################
 
 
