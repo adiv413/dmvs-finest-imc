@@ -20,7 +20,7 @@ class Trader:
     ORDER_SIZING = 100
     POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600}
 
-    MODE = "NEUTRAL" #the three modes are NEUTRAL, LONG_PINA, and LONG_COCO
+    MODE = "NEUTRAL" #the  modes are NEUTRAL, LONG_PINA, and LONG_COCO, PINA_HOLD, and COCO_HOLD
     STANDARD_DEVIATIONS = 3
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
@@ -88,10 +88,12 @@ class Trader:
                 self.MODE = "LONG_COCO"
             elif currentLogVal < logAvg - self.STANDARD_DEVIATIONS*logStd:
                 self.MODE = "LONG_PINA"
-            elif self.MODE == "LONG_PINA" and currentLogVal > logAvg or self.MODE == "LONG_COCO" and currentLogVal < logAvg:
+            elif self.MODE == "PINA_HOLD" and currentLogVal > logAvg or self.MODE == "LONG_COCO" and currentLogVal < logAvg:
                 self.MODE = "NEUTRAL"
-            elif self.MODE == "LONG_PINA" and currentLogVal < logAvg + self.STANDARD_DEVIATIONS*logStd or self.MODE == "LONG_COCO" and currentLogVal > logAvg - self.STANDARD_DEVIATIONS*logStd:
-                self.MODE = "HOLD"
+            elif self.MODE == "LONG_PINA" and currentLogVal < logAvg + self.STANDARD_DEVIATIONS*logStd:
+                self.MODE = "PINA_HOLD"
+            elif self.MODE == "LONG_COCO" and currentLogVal > logAvg - self.STANDARD_DEVIATIONS*logStd:
+                self.MODE = "COCO_HOLD"
             # print("--------------------")
             # print(self.MODE)
 
@@ -153,8 +155,8 @@ class Trader:
                     # print(f'Coconut BUY order placed at quantity {cocoPosition}, seashell amount {cocoPosition*cocoPrice}, and current coconut seashell position {cocoPosition*cocoPrice}')
             
             
-            print(f'Pina Position: {pinaPosition}')
-            print(f'Coco Position: {cocoPosition}')
+            print(f'Pina Position: {pinaPosition*pinaPrice}')
+            print(f'Coco Position: {cocoPosition*cocoPrice}')
 
 
             result["PINA_COLADAS"] = pinaOrders

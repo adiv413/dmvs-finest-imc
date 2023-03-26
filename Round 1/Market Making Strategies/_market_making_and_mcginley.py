@@ -8,9 +8,9 @@ from math import floor
 class Trader:
 
     ## MARKET MAKING PARAMETERS
-    RISK_ADJUSTMENT = {"BANANAS" : 0.1, "PEARLS" : 0.1, "COCONUTS" : 0, "PINA_COLADAS" : 0}
-    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5, "COCONUTS" : 10, "PINA_COLADAS" : 10}
-    HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3, "COCONUTS": 1, "PINA_COLADAS": 1}
+    RISK_ADJUSTMENT = {"BANANAS" : 0.1, "PEARLS" : 0.1}
+    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
+    HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3}
     ############################
 
     ## MCGINLEY PARAMETERS
@@ -29,13 +29,13 @@ class Trader:
     ############################
 
     ## POSITION SIZING PARAMS
-    MM_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10, "COCONUTS" : 150, "PINA_COLADAS" : 150}
-    MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0, "COCONUTS" : 0, "PINA_COLADAS" : 0}
-    MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}, "COCONUTS" : {"BUY": 0, "SELL": 0}, "PINA_COLADAS" : {"BUY": 0, "SELL": 0}}
+    MM_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
+    MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
+    MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
     ############################
-    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10, "COCONUTS" : 150, "PINA_COLADAS" : 150}
-    MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0, "COCONUTS" : 0, "PINA_COLADAS" : 0}
-    MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}, "COCONUTS" : {"BUY": 0, "SELL": 0}, "PINA_COLADAS" : {"BUY": 0, "SELL": 0}}
+    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
+    MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0,}
+    MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
     ############################
     LAST_TIMESTAMP = -100000
 
@@ -46,7 +46,7 @@ class Trader:
             orders: list[Order] = []
             order_depth: OrderDepth = state.order_depths[product]
 
-            if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
+            if product in self.RISK_ADJUSTMENT.keys():
                 ##GET TRADES
                 try:
                     own_trades = state.own_trades[product]
