@@ -21,13 +21,14 @@ class Trader:
     }
 
     COUNT = 0
+    POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600, "BERRIES": 250, "DIVING_GEAR": 50, "BAGUETTE": 150, "DIP": 300, "UKULELE": 70, "PICNIC_BASKET": 70}
     ############################
 
     ## LEVERS
-    pearlsBananas = False
-    pinasCoconuts = False
-    mayberries = False
-    diving_gear = False
+    pearlsBananas = True
+    pinasCoconuts = True
+    mayberries = True
+    diving_gear = True
     baskets = True
 
     ### PEARLS AND BANANAS
@@ -49,7 +50,6 @@ class Trader:
     ############################
 
     ### PINA COLADAS AND COCONUTS
-    POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600, "BERRIES": 250, "DIVING_GEAR": 50, "BAGUETTE": 150, "DIP": 300, "UKULELE": 70, "PICNIC_BAKSET": 70}
 
     MODE = "NEUTRAL" #the three modes are NEUTRAL, LONG_PINA, and LONG_COCO, PINA_HOLD, and COCO_HOLD
     STANDARD_DEVIATIONS = 0.5
@@ -62,6 +62,12 @@ class Trader:
     DOLPHIN_MODE = "NEUTRAL"
     DELTA_LIMIT = 5
     ############################
+
+    ### BASKETS
+    BASKET_MODE = "NEUTRAL"
+    BASKET_STDS = 1
+    ############################
+
 
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
@@ -205,11 +211,11 @@ class Trader:
                 if(timestep >= start and timestep < end):
                     orders.append(Order("BERRIES", best_ask, self.POSITION_LIMIT[product] - position))
                     # logger.print("BUYING BUYING BUYING")
-                    print(f'BUYING: Current position = {position}')
+                    # print(f'BUYING: Current position = {position}')
                 elif(timestep >= end):
                     orders.append(Order("BERRIES", best_bid, -(min(self.POSITION_LIMIT[product], self.POSITION_LIMIT[product] + position))))
                     # logger.print("I AM IN THE RANGE")
-                    print(f'SELLING: Current position = {position}')
+                    # print(f'SELLING: Current position = {position}')
                 result["BERRIES"] = orders
 
             if product == "DIVING_GEAR" and self.diving_gear:
@@ -225,8 +231,12 @@ class Trader:
                     # print(f'MA2: {MA2}')
                     if delta < -self.DELTA_LIMIT:
                         self.DOLPHIN_MODE = "NEW_SHORT"
+                        print("DOLPHIN SIGHTING: SHORT")
+                        print("delta: ", delta)
                     elif delta > self.DELTA_LIMIT:
                         self.DOLPHIN_MODE = "NEW_LONG"
+                        print("DOLPHIN SIGHTING: LONG")
+                        print("delta: ", delta)
 
                     if self.DOLPHIN_MODE == "NEW_SHORT" and MA1 < MA2:
                         self.DOLPHIN_MODE = "SHORT"
@@ -289,11 +299,11 @@ class Trader:
                 self.MODE = "LONG_COCO"
             elif currentLogVal < logAvg - self.STANDARD_DEVIATIONS*logStd:
                 self.MODE = "LONG_PINA"
-            elif self.MODE == "PINA_HOLD" and currentLogVal > logAvg or self.MODE == "LONG_COCO" and currentLogVal < logAvg:
-                self.MODE = "NEUTRAL"
-            elif self.MODE == "LONG_PINA" and currentLogVal < logAvg + self.STANDARD_DEVIATIONS*logStd:
+            # elif self.MODE == "PINA_HOLD" and currentLogVal > logAvg or self.MODE == "COCO_HOLD" and currentLogVal < logAvg:
+            #     self.MODE = "NEUTRAL"
+            elif self.MODE == "LONG_PINA" and currentLogVal > logAvg - self.STANDARD_DEVIATIONS*logStd:
                 self.MODE = "PINA_HOLD"
-            elif self.MODE == "LONG_COCO" and currentLogVal > logAvg - self.STANDARD_DEVIATIONS*logStd:
+            elif self.MODE == "LONG_COCO" and currentLogVal < logAvg + self.STANDARD_DEVIATIONS*logStd:
                 self.MODE = "COCO_HOLD"
             # print("--------------------")
             # print(self.MODE)
@@ -301,6 +311,7 @@ class Trader:
             position_deficit = pinaPosition*pinaPrice + cocoPosition*cocoPrice
 
             #print the coco ask volumes and the coco bid volumes
+
 
             if self.MODE == "LONG_PINA": #long pina, short coco
                 pina_ask = self.stats["asks"]["PINA_COLADAS"][-1]
@@ -310,9 +321,9 @@ class Trader:
 
                 # print(f'Pina ask: {pina_ask}, Pina ask volume: {pina_ask_volume}, Coco bid: {coco_bid}, Coco bid volume: {coco_bid_volume}')
                 # print(f'Pina position: {pinaPosition}, Coco position: {cocoPosition}')
-
-                pina_market_order_size = min(-pina_ask_volume, self.POSITION_LIMIT["PINA_COLADAS"] - pinaPosition) * pinaPrice
-                coco_market_order_size = min(coco_bid_volume, self.POSITION_LIMIT["COCONUTS"] + cocoPosition) * cocoPrice
+                
+                pina_market_order_size = min(-pina_ask_volume, self.POSITION_LIMIT["PINA_COLADAS"] - max(0,pinaPosition)) * pinaPrice
+                coco_market_order_size = min(coco_bid_volume, self.POSITION_LIMIT["COCONUTS"] + min(0, cocoPosition)) * cocoPrice
                 market_order_size = min(pina_market_order_size, coco_market_order_size)
                 pina_adj_order = round((market_order_size - position_deficit/2)/pinaPrice)
                 coco_adj_order = round((market_order_size - position_deficit/2)/cocoPrice)
@@ -330,8 +341,8 @@ class Trader:
                 coco_ask = self.stats["asks"]["COCONUTS"][-1]
                 coco_ask_volume = self.stats["askVolumes"]["COCONUTS"][-1]
 
-                pina_market_order_size = min(pina_bid_volume, self.POSITION_LIMIT["PINA_COLADAS"] + pinaPosition) * pinaPrice
-                coco_market_order_size = min(-coco_ask_volume, self.POSITION_LIMIT["COCONUTS"] - cocoPosition) * cocoPrice
+                pina_market_order_size = min(pina_bid_volume, self.POSITION_LIMIT["PINA_COLADAS"] + min(0, pinaPosition)) * pinaPrice
+                coco_market_order_size = min(-coco_ask_volume, self.POSITION_LIMIT["COCONUTS"] - max(0,cocoPosition)) * cocoPrice
                 market_order_size = min(pina_market_order_size, coco_market_order_size)
                 pina_adj_order = round((market_order_size - position_deficit/2)/pinaPrice)
                 coco_adj_order = round((market_order_size - position_deficit/2)/cocoPrice)
@@ -341,25 +352,137 @@ class Trader:
                 cocoOrders.append(Order("COCONUTS", coco_ask, coco_adj_order))
                 # print(f'Coconut BUY order placed at quantity {coco_adj_order}, seashell amount {coco_adj_order*cocoPrice}, and current coconut seashell position {cocoPosition*cocoPrice}')
 
-            elif self.MODE == "NEUTRAL": #sell everything to 0
-                if pinaPosition > 0:
-                    pinaOrders.append(Order("PINA_COLADAS", self.stats["bids"]["PINA_COLADAS"][-1], -pinaPosition))
-                    # print(f'Pina colada SELL order placed at quantity {-pinaPosition}, price {self.stats["bids"]["PINA_COLADAS"][-1]}')
-                elif pinaPosition < 0:
-                    pinaOrders.append(Order("PINA_COLADAS", self.stats["asks"]["PINA_COLADAS"][-1], -pinaPosition))
-                    # print(f'Pina colada BUY order placed at quantity {-pinaPosition}, price {self.stats["asks"]["PINA_COLADAS"][-1]}')
-                if cocoPosition > 0:
-                    cocoOrders.append(Order("COCONUTS", self.stats["bids"]["COCONUTS"][-1], -cocoPosition))
-                    # print(f'Coconut SELL order placed at quantity {-cocoPosition}, price {self.stats["bids"]["COCONUTS"][-1]}')
-                elif cocoPosition < 0:
-                    cocoOrders.append(Order("COCONUTS", self.stats["asks"]["COCONUTS"][-1], -cocoPosition))
-                    # print(f'Coconut BUY order placed at quantity {-cocoPosition}, price {self.stats["asks"]["COCONUTS"][-1]}')
+            # elif self.MODE == "NEUTRAL": #sell everything to 0
+            #     if pinaPosition > 0:
+            #         pinaOrders.append(Order("PINA_COLADAS", self.stats["bids"]["PINA_COLADAS"][-1], -pinaPosition))
+            #         # print(f'Pina colada SELL order placed at quantity {-pinaPosition}, price {self.stats["bids"]["PINA_COLADAS"][-1]}')
+            #     elif pinaPosition < 0:
+            #         pinaOrders.append(Order("PINA_COLADAS", self.stats["asks"]["PINA_COLADAS"][-1], -pinaPosition))
+            #         # print(f'Pina colada BUY order placed at quantity {-pinaPosition}, price {self.stats["asks"]["PINA_COLADAS"][-1]}')
+            #     if cocoPosition > 0:
+            #         cocoOrders.append(Order("COCONUTS", self.stats["bids"]["COCONUTS"][-1], -cocoPosition))
+            #         # print(f'Coconut SELL order placed at quantity {-cocoPosition}, price {self.stats["bids"]["COCONUTS"][-1]}')
+            #     elif cocoPosition < 0:
+            #         cocoOrders.append(Order("COCONUTS", self.stats["asks"]["COCONUTS"][-1], -cocoPosition))
+            #         # print(f'Coconut BUY order placed at quantity {-cocoPosition}, price {self.stats["asks"]["COCONUTS"][-1]}')
 
             result["PINA_COLADAS"] = pinaOrders
             result["COCONUTS"] = cocoOrders    
-            print(f'pina position value: {pinaPosition*pinaPrice}, coco position value: {cocoPosition*cocoPrice}, net position value: {pinaPosition*pinaPrice + cocoPosition*cocoPrice}')
+            # print(f'pina position value: {pinaPosition*pinaPrice}, coco position value: {cocoPosition*cocoPrice}, net position value: {pinaPosition*pinaPrice + cocoPosition*cocoPrice}')
 
-        
+        if self.baskets:
+            baguettePrice = self.stats["avg_prices"]["BAGUETTE"][-1]
+            dipPrice = self.stats["avg_prices"]["DIP"][-1]
+            ukulelePrice = self.stats["avg_prices"]["UKULELE"][-1]
+            basketPrice = self.stats["avg_prices"]["PICNIC_BASKET"][-1]
+            proxyBasketPrice = 2*baguettePrice + 4*dipPrice + ukulelePrice
+
+            try:
+                baguettePosition = state.position["BAGUETTE"]
+            except:
+                baguettePosition = 0
+            try:
+                dipPosition = state.position["DIP"]
+            except:
+                dipPosition = 0
+            try:
+                ukulelePosition = state.position["UKULELE"]
+            except:
+                ukulelePosition = 0
+            try:
+                basketPosition = state.position["PICNIC_BASKET"]
+            except:
+                basketPosition = 0
+            proxyBasketPosition = (baguettePosition/2 + dipPosition/4 + ukulelePosition)/7
+
+            currentLogVal = log(basketPrice/proxyBasketPrice)
+            logAvg = 0.005088082667016638
+            logStd = 0.0016822947277079987
+            proxy_basket_positioncap = 70
+
+            baguetteOrders: List[Order] = []
+            dipOrders: List[Order] = []
+            ukuleleOrders: List[Order] = []
+            basketOrders: List[Order] = []
+
+            if currentLogVal > logAvg + self.BASKET_STDS*logStd:
+                self.BASKET_MODE = "LONG_PROXY"
+            elif currentLogVal < logAvg - self.BASKET_STDS*logStd:
+                self.BASKET_MODE = "LONG_BASKET"
+            elif self.BASKET_MODE == "LONG_PROXY" and currentLogVal < logAvg + self.BASKET_STDS*logStd:
+                self.BASKET_MODE = "HOLD_PROXY"
+            elif self.BASKET_MODE == "LONG_BASKET" and currentLogVal > logAvg - self.BASKET_STDS*logStd:
+                self.BASKET_MODE = "HOLD_BASKET"
+            
+            overall_position_deficit = basketPosition*basketPrice + baguettePosition*baguettePrice + dipPosition*dipPrice + ukulelePosition*ukulelePrice
+            perfect_position_ratios = {"BAGUETTE": 2/7, "DIP": 4/7, "UKULELE": 1/7}
+            total_position = baguettePosition + dipPosition + ukulelePosition
+            if total_position == 0:
+                position_ratio_deficits = {"BAGUETTE": 0, "DIP": 0, "UKULELE": 0}
+            else:
+                position_ratios = {"BAGUETTE": baguettePosition/total_position, "DIP": dipPosition/total_position, "UKULELE": ukulelePosition/total_position}
+                position_ratio_deficits = {"BAGUETTE": perfect_position_ratios["BAGUETTE"] - position_ratios["BAGUETTE"], "DIP": perfect_position_ratios["DIP"] - position_ratios["DIP"], "UKULELE": perfect_position_ratios["UKULELE"] - position_ratios["UKULELE"]}
+
+            if self.BASKET_MODE == "LONG_BASKET":
+                # print("LONG BASKET SHORT PROXY")
+                basket_ask = self.stats["asks"]["PICNIC_BASKET"][-1]
+                basket_ask_volume = self.stats["askVolumes"]["PICNIC_BASKET"][-1]
+                proxy_bid_volume = min(self.stats["bidVolumes"]["BAGUETTE"][-1]/2, self.stats["bidVolumes"]["DIP"][-1]/4, self.stats["bidVolumes"]["UKULELE"][-1])
+
+                basket_market_order_size = min(-basket_ask_volume, self.POSITION_LIMIT["PICNIC_BASKET"] - max(0, basketPosition)) * basketPrice
+                proxy_market_order_size = min(proxy_bid_volume, proxy_basket_positioncap + min(0, proxyBasketPosition)) * proxyBasketPrice
+                market_order_size = min(basket_market_order_size, proxy_market_order_size)
+                basket_adj_order = round((market_order_size - overall_position_deficit/2) / basketPrice)
+                proxy_adj_order = round((-market_order_size + overall_position_deficit/2) / proxyBasketPrice)
+                basketOrders.append(Order("PICNIC_BASKET", basket_ask, basket_adj_order))
+
+                print(f'basket_adj_order: {basket_adj_order}')
+
+                try:
+                    productAdjustments = {key: value/abs(value) for key, value in position_ratio_deficits.items()}
+                except:
+                    productAdjustments = {"BAGUETTE": 0, "DIP": 0, "UKULELE": 0}
+                
+                baguetteOrders.append(Order("BAGUETTE", self.stats["bids"]["BAGUETTE"][-1], 2*proxy_adj_order + productAdjustments["BAGUETTE"]))
+                dipOrders.append(Order("DIP", self.stats["bids"]["DIP"][-1], 4*proxy_adj_order + productAdjustments["DIP"]))
+                ukuleleOrders.append(Order("UKULELE", self.stats["bids"]["UKULELE"][-1], proxy_adj_order + productAdjustments["UKULELE"]))
+
+            elif self.BASKET_MODE == "LONG_PROXY":
+                # print("SHORT BASKET LONG PROXY")
+                basket_bid = self.stats["bids"]["PICNIC_BASKET"][-1]
+                basket_bid_volume = self.stats["bidVolumes"]["PICNIC_BASKET"][-1]
+                proxy_ask_volume = min(self.stats["askVolumes"]["BAGUETTE"][-1]/2, self.stats["askVolumes"]["DIP"][-1]/4, self.stats["askVolumes"]["UKULELE"][-1])
+
+                basket_market_order_size = min(basket_bid_volume, self.POSITION_LIMIT["PICNIC_BASKET"] + min(0, basketPosition)) * basketPrice
+                proxy_market_order_size = min(-proxy_ask_volume, proxy_basket_positioncap - max(0, proxyBasketPosition)) * proxyBasketPrice
+                market_order_size = min(basket_market_order_size, proxy_market_order_size)
+                basket_adj_order = round((-market_order_size - overall_position_deficit/2) / basketPrice)
+                proxy_adj_order = round((market_order_size + overall_position_deficit/2) / proxyBasketPrice)
+                basketOrders.append(Order("PICNIC_BASKET", basket_bid, basket_adj_order))
+
+                try:
+                    productAdjustments = {key: value/abs(value) for key, value in position_ratio_deficits.items()}
+                except:
+                    productAdjustments = {"BAGUETTE": 0, "DIP": 0, "UKULELE": 0}
+
+                baguetteOrders.append(Order("BAGUETTE", self.stats["asks"]["BAGUETTE"][-1], 2*proxy_adj_order + productAdjustments["BAGUETTE"]))
+                dipOrders.append(Order("DIP", self.stats["asks"]["DIP"][-1], 4*proxy_adj_order + productAdjustments["DIP"]))
+                ukuleleOrders.append(Order("UKULELE", self.stats["asks"]["UKULELE"][-1], proxy_adj_order + productAdjustments["UKULELE"]))
+
+            # print(f'Basket position value: {basketPosition*basketPrice}')
+            # print(f'Basket position: {basketPosition}')
+            # print(f'Proxy basket position value: {baguettePosition*baguettePrice + dipPosition*dipPrice + ukulelePosition*ukulelePrice}')
+            # print(f'perfect_position_ratios: {2/7}, {4/7}, {1/7}')
+            # try:
+            #     print(f'position_ratios: {baguettePosition/total_position}, {dipPosition/total_position}, {ukulelePosition/total_position}')
+            # except:
+            #     print(f'position_ratios: {0}, {0}, {0}')
+            
+            
+            result["PICNIC_BASKET"] = basketOrders
+            result["BAGUETTE"] = baguetteOrders
+            result["DIP"] = dipOrders
+            result["UKULELE"] = ukuleleOrders
 
         self.LAST_TIMESTAMP = state.timestamp
         # print('\n----------------------------------------------------------------------------------------------------\n')
