@@ -26,10 +26,10 @@ class Trader:
     ############################
 
     ## LEVERS
-    pearlsBananas = True
-    pinasCoconuts = True
-    mayberries = True
-    diving_gear = True
+    pearlsBananas = False
+    pinasCoconuts = False
+    mayberries = False
+    diving_gear = False
     baskets = True
 
     ### PEARLS AND BANANAS
