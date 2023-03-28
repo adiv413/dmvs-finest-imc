@@ -21,8 +21,8 @@ class Trader:
     }
 
     COUNT = 0
-    POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600, "BERRIES": 250, "DIVING_GEAR": 50, "BAGUETTE": 150, "DIP": 300, "UKULELE": 70, "PICNIC_BASKET": 70}
-    TRADING = True
+    POSITION_LIMIT = {"BANANAS": 20, "PEARLS": 20, "PINA_COLADAS": 300, "COCONUTS": 600, "BERRIES": 250, "DIVING_GEAR": 50, "BAGUETTE": 150, "DIP": 300, "UKULELE": 70, "PICNIC_BASKET": 70}
+
     ############################
 
     ## LEVERS
@@ -33,20 +33,6 @@ class Trader:
     baskets = True
 
     ### PEARLS AND BANANAS
-    ## MARKET MAKING PARAMETERS
-    RISK_ADJUSTMENT = {"BANANAS" : 0.1, "PEARLS" : 0.1}
-    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
-    HALF_SPREAD_SIZE = {"BANANAS": 2, "PEARLS": 3}
-    ############################
-    ## POSITION SIZING PARAMS
-    MM_POSITION_LIMIT = {"BANANAS" : 8, "PEARLS" : 10}
-    MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
-    MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
-    ############################
-    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 12, "PEARLS" : 10}
-    MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0,}
-    MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
-    ############################
     LAST_TIMESTAMP = -100000
     ############################
 
@@ -73,7 +59,6 @@ class Trader:
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         result = {}
-        self.TRADING = True
 
         order_depth: OrderDepth = state.order_depths
         self.COUNT += 1
@@ -112,58 +97,18 @@ class Trader:
 
 
             if product in ["PEARLS", "BANANAS"] and self.pearlsBananas:
-                ##GET TRADES
-                try:
-                    own_trades = state.own_trades[product]
-                except:
-                    own_trades = []
-                ##############################
 
-                ## CALCULATING THE POSITION SIZE OF MARKET MAKING
-                for trade in own_trades:
-                    if trade.timestamp == self.LAST_TIMESTAMP:
-                        if trade.buyer == "SUBMISSION" and trade.price == self.MM_LAST_ORDER_PRICE[product]["BUY"]:
-                            self.MM_POSITION[product] += trade.quantity
-                        elif trade.seller == "SUBMISSION" and trade.price == self.MM_LAST_ORDER_PRICE[product]["SELL"]:
-                            self.MM_POSITION[product] -= trade.quantity
-                ##############################
-
-                ## CALCULATING THE POSITION SIZE OF MCGINLEY
-                for trade in own_trades:
-                    if trade.timestamp == self.LAST_TIMESTAMP:
-                        if trade.buyer == "SUBMISSION" and trade.price == self.MCGINLEY_LAST_ORDER_PRICE[product]["BUY"]:
-                            self.MCGINLEY_POSITION[product] += trade.quantity
-                        elif trade.seller == "SUBMISSION" and trade.price == self.MCGINLEY_LAST_ORDER_PRICE[product]["SELL"]:
-                            self.MCGINLEY_POSITION[product] -= trade.quantity
-                ##############################
-
-                ## CALCULATING STATS
-                best_bid = self.stats["bids"][product][-1]
-                best_ask = self.stats["asks"][product][-1]
-                best_bid_volume = self.stats["bidVolumes"][product][-1]
-                best_ask_volume = self.stats["askVolumes"][product][-1]
+                n=12
+                k=0.67
                 value = self.stats["avg_prices"][product][-1]
-                ##############################
-
-                ## MARKET MAKING STRATEGY
-                skew = -self.MM_POSITION[product] * self.RISK_ADJUSTMENT[product]
-                buy_quote = floor(value - self.HALF_SPREAD_SIZE[product] + skew)
-                sell_quote = floor(value + self.HALF_SPREAD_SIZE[product] + skew)
-                ##############################
+                curr_price = value
 
                 ## MCGINLEY STRATEGY
                 if state.timestamp != 0:
                     mcginley_price = self.stats["acceptable_price"][product]
                 else:
                     mcginley_price = value
-
-                if product not in self.stats["asks"]:
-                    self.stats["asks"][product] = []
-                if product not in self.stats["bids"]:
-                    self.stats["bids"][product] = []
                 
-                self.stats["asks"][product].append(best_ask)
-                self.stats["bids"][product].append(best_bid)
 
                 n=12
                 k=0.67
@@ -182,26 +127,16 @@ class Trader:
                     acceptable_price = self.stats["acceptable_price"][product]
                     ##############################
 
-                    ## MARKET MAKING ORDERS
-                    orders.append(Order(product, buy_quote, max(0,min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] - self.MM_POSITION[product]))))
-                    orders.append(Order(product, sell_quote, -max(0,min(self.ORDER_VOLUME[product], self.MM_POSITION_LIMIT[product] + self.MM_POSITION[product]))))
-                    self.MM_LAST_ORDER_PRICE[product] = {"BUY": buy_quote, "SELL": sell_quote}
-                    ##############################
+    
 
                     ## MCGINLEY ORDERS
-                    if best_ask < acceptable_price and best_ask != buy_quote: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
+                    if best_ask < acceptable_price: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
                         # print("BUY", str(-best_ask_volume) + "x", best_ask)
-                        orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, self.MCGINLEY_POSITION_LIMIT[product] - self.MCGINLEY_POSITION[product]))))
-                        self.MCGINLEY_LAST_ORDER_PRICE[product]["BUY"] = best_ask
-                    else:
-                        self.MCGINLEY_LAST_ORDER_PRICE[product]["BUY"] = 0
+                        orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, self.POSITION_LIMIT[product] - position))))
 
-                    if best_bid > acceptable_price and best_bid != sell_quote: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
+                    if best_bid > acceptable_price: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
                         # print("SELL", str(best_bid_volume) + "x", best_bid)
-                        orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, self.MCGINLEY_POSITION_LIMIT[product] + self.MCGINLEY_POSITION[product]))))
-                        self.MCGINLEY_LAST_ORDER_PRICE[product]["SELL"] = best_bid
-                    else:
-                        self.MCGINLEY_LAST_ORDER_PRICE[product]["SELL"] = 0
+                        orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, self.POSITION_LIMIT[product] + position))))
                     ##############################
                     
                     result[product] = orders
@@ -275,7 +210,7 @@ class Trader:
                 result["DIVING_GEAR"] = orders
 
 
-        if self.pinasCoconuts and self.TRADING:
+        if self.pinasCoconuts:
             cocoPrice = self.stats["avg_prices"]["COCONUTS"][-1]
             pinaPrice = self.stats["avg_prices"]["PINA_COLADAS"][-1]
 
@@ -372,7 +307,7 @@ class Trader:
             result["COCONUTS"] = cocoOrders    
             # print(f'pina position value: {pinaPosition*pinaPrice}, coco position value: {cocoPosition*cocoPrice}, net position value: {pinaPosition*pinaPrice + cocoPosition*cocoPrice}')
 
-        if self.baskets and self.TRADING:
+        if self.baskets:
             baguettePrice = self.stats["avg_prices"]["BAGUETTE"][-1]
             dipPrice = self.stats["avg_prices"]["DIP"][-1]
             ukulelePrice = self.stats["avg_prices"]["UKULELE"][-1]
