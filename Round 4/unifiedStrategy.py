@@ -22,6 +22,7 @@ class Trader:
 
     COUNT = 0
     POSITION_LIMIT = {"PINA_COLADAS": 300, "COCONUTS": 600, "BERRIES": 250, "DIVING_GEAR": 50, "BAGUETTE": 150, "DIP": 300, "UKULELE": 70, "PICNIC_BASKET": 70}
+    TRADING = True
     ############################
 
     ## LEVERS
@@ -60,7 +61,7 @@ class Trader:
     DOLPHIN_WINDOW1 = 100
     DOLPHIN_WINDOW2 = 200
     DOLPHIN_MODE = "NEUTRAL"
-    DELTA_LIMIT = 5
+    DELTA_LIMIT = 6
     ############################
 
     ### BASKETS
@@ -72,6 +73,7 @@ class Trader:
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         result = {}
+        self.TRADING = True
 
         order_depth: OrderDepth = state.order_depths
         self.COUNT += 1
@@ -273,7 +275,7 @@ class Trader:
                 result["DIVING_GEAR"] = orders
 
 
-        if self.pinasCoconuts:
+        if self.pinasCoconuts and self.TRADING:
             cocoPrice = self.stats["avg_prices"]["COCONUTS"][-1]
             pinaPrice = self.stats["avg_prices"]["PINA_COLADAS"][-1]
 
@@ -370,7 +372,7 @@ class Trader:
             result["COCONUTS"] = cocoOrders    
             # print(f'pina position value: {pinaPosition*pinaPrice}, coco position value: {cocoPosition*cocoPrice}, net position value: {pinaPosition*pinaPrice + cocoPosition*cocoPrice}')
 
-        if self.baskets:
+        if self.baskets and self.TRADING:
             baguettePrice = self.stats["avg_prices"]["BAGUETTE"][-1]
             dipPrice = self.stats["avg_prices"]["DIP"][-1]
             ukulelePrice = self.stats["avg_prices"]["UKULELE"][-1]
