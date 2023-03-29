@@ -346,10 +346,10 @@ class Trader:
                 self.BASKET_MODE = "LONG_PROXY"
             elif currentLogVal < logAvg - self.BASKET_STDS*logStd:
                 self.BASKET_MODE = "LONG_BASKET"
-            elif self.BASKET_MODE == "LONG_PROXY" and currentLogVal < logAvg + self.BASKET_STDS*logStd:
-                self.BASKET_MODE = "HOLD_PROXY"
-            elif self.BASKET_MODE == "LONG_BASKET" and currentLogVal > logAvg - self.BASKET_STDS*logStd:
-                self.BASKET_MODE = "HOLD_BASKET"
+            # elif self.BASKET_MODE == "LONG_PROXY" and currentLogVal < logAvg + self.BASKET_STDS*logStd:
+            #     self.BASKET_MODE = "HOLD_PROXY"
+            # elif self.BASKET_MODE == "LONG_BASKET" and currentLogVal > logAvg - self.BASKET_STDS*logStd:
+            #     self.BASKET_MODE = "HOLD_BASKET"
             
             overall_position_deficit = basketPosition*basketPrice + baguettePosition*baguettePrice + dipPosition*dipPrice + ukulelePosition*ukulelePrice
             perfect_position_ratios = {"BAGUETTE": 2/7, "DIP": 4/7, "UKULELE": 1/7}
