@@ -24,6 +24,13 @@ trades3['timestamp'] = trades3['timestamp'] + price2['timestamp'].max() + 100
 
 combinedTrades = pd.concat([trades1, trades2, trades3])
 
+#make combinedTrades and combined into only timestamps 1300000 to 1500000
+combined = combined[combined['timestamp'] >= 1300000]
+combined = combined[combined['timestamp'] <= 1500000]
+combinedTrades = combinedTrades[combinedTrades['timestamp'] >= 1300000]
+combinedTrades = combinedTrades[combinedTrades['timestamp'] <= 1500000]
+
+
 productCharts = {item:combined[combined['product'] == item] for item in combined['product'].unique() if item != 'DOLPHIN_SIGHTINGS'}
 buyOrders = {buyer:combinedTrades[combinedTrades['buyer'] == buyer] for buyer in combinedTrades['buyer'].unique()}
 sellOrders = {seller:combinedTrades[combinedTrades['seller'] == seller] for seller in combinedTrades['seller'].unique()}
@@ -54,7 +61,7 @@ def show_plots_for_product(product):
         if trader in traders:
             fig, axs = plt.subplots(1, 1, sharex = True)
             axs.plot(productCharts[product]['timestamp'], productCharts[product]['mid_price'])
-            axs.set_title(trader)
+            axs.set_title(f'{trader} trading {product}')
             buyTrades = buyOrders[trader]
             buyTrades = buyTrades[buyTrades['symbol'] == product]
             sellTrades = sellOrders[trader]
@@ -68,7 +75,7 @@ def show_plots_for_product(product):
         for trader in productTraders:
             fig, axs = plt.subplots(1, 1, sharex = True)
             axs.plot(productCharts[product]['timestamp'], productCharts[product]['mid_price'])
-            axs.set_title(trader)
+            axs.set_title(f'{trader} trading {product}')
             buyTrades = buyOrders[trader]
             buyTrades = buyTrades[buyTrades['symbol'] == product]
             sellTrades = sellOrders[trader]
@@ -79,6 +86,61 @@ def show_plots_for_product(product):
                 axs.axvline(sellTrades.iloc[j]['timestamp'], color='r')
             plt.show()
 
+def show_points_for_product(product): #same thing as above but with points instead of lines
+    productTraders = [trader for trader in traders if product in buyOrders[trader]['symbol'].unique() or product in sellOrders[trader]['symbol'].unique()]
+    plotType = input('All traders, user specified trader, or loop through? (all/spec/loop): ')
+    if plotType == 'all':
+        fig, axs = plt.subplots(len(productTraders), 1, sharex = True)
+        for i in range(len(productTraders)):
+            # axs[i].plot(productCharts[product]['timestamp'], productCharts[product]['mid_price'])
+            #plot with transparent color of grey
+            axs[i].scatter(productCharts[product]['timestamp'], productCharts[product]['mid_price'], color = 'grey', alpha = 0.5)
+            axs[i].set_title(f'{productTraders[i]} trading {product}')
+            buyTrades = buyOrders[productTraders[i]]
+            buyTrades = buyTrades[buyTrades['symbol'] == product]
+            sellTrades = sellOrders[productTraders[i]]
+            sellTrades = sellTrades[sellTrades['symbol'] == product]
+            for j in range(len(buyTrades)):
+                axs[i].scatter(buyTrades.iloc[j]['timestamp'], buyTrades.iloc[j]['price'], color = 'g')
+            for j in range(len(sellTrades)):
+                axs[i].scatter(sellTrades.iloc[j]['timestamp'], sellTrades.iloc[j]['price'], color = 'r')
+        plt.show()
+    elif plotType == 'spec':
+        print('Available traders: ', traders)
+        trader = input('Enter trader name: ')
+        if trader in traders:
+            fig, axs = plt.subplots(1, 1, sharex = True)
+            # axs.plot(productCharts[product]['timestamp'], productCharts[product]['mid_price'])
+            # plot with transparent color of grey
+            axs.plot(productCharts[product]['timestamp'], productCharts[product]['mid_price'], color = 'grey', alpha = 0.5)
+            axs.set_title(trader)
+            buyTrades = buyOrders[trader]
+            buyTrades = buyTrades[buyTrades['symbol'] == product]
+            sellTrades = sellOrders[trader]
+            sellTrades = sellTrades[sellTrades['symbol'] == product]
+            for j in range(len(buyTrades)):
+                axs.scatter(buyTrades.iloc[j]['timestamp'], buyTrades.iloc[j]['price'], color = 'g')
+            for j in range(len(sellTrades)):
+                axs.scatter(sellTrades.iloc[j]['timestamp'], sellTrades.iloc[j]['price'], color = 'r')
+            plt.show()
+    elif plotType == 'loop':
+        for trader in productTraders:
+            fig, axs = plt.subplots(1, 1, sharex = True)
+            # axs.plot(productCharts[product]['timestamp'], productCharts[product]['mid_price'])
+            # plot with transparent color of grey
+            axs.plot(productCharts[product]['timestamp'], productCharts[product]['mid_price'], color = 'grey', alpha = 0.5)
+            axs.set_title(trader)
+            buyTrades = buyOrders[trader]
+            buyTrades = buyTrades[buyTrades['symbol'] == product]
+            sellTrades = sellOrders[trader]
+            sellTrades = sellTrades[sellTrades['symbol'] == product]
+            for j in range(len(buyTrades)):
+                axs.scatter(buyTrades.iloc[j]['timestamp'], buyTrades.iloc[j]['price'], color = 'g')
+            for j in range(len(sellTrades)):
+                axs.scatter(sellTrades.iloc[j]['timestamp'], sellTrades.iloc[j]['price'], color = 'r')
+            plt.show()
+
 while True:
     user_spec = input('Enter product name: ')
-    show_plots_for_product(user_spec)
+    # show_plots_for_product(user_spec)
+    show_points_for_product(user_spec)
