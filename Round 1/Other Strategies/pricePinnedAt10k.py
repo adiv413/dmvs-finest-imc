@@ -15,6 +15,11 @@ class Trader:
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
 
+            try:
+                position = state.position[product]
+            except:
+                position = 0
+
             # Check if the current product is the 'PEARLS' product, only then run the order logic
             if product == 'PEARLS':
 
@@ -35,6 +40,8 @@ class Trader:
                     # and select only the sell order with the lowest price
                     best_ask = min(order_depth.sell_orders.keys())
                     best_ask_volume = order_depth.sell_orders[best_ask]
+                    # print(type(order_depth.sell_orders))
+                    # print(type(order_depth.sell_orders[best_ask]))
 
                     # Check if the lowest ask (sell order) is lower than the above defined fair value
                     if best_ask < acceptable_price:
@@ -45,7 +52,7 @@ class Trader:
                         # with the same quantity
                         # We expect this order to trade with the sell order
                         print("BUY", str(-best_ask_volume) + "x", best_ask)
-                        orders.append(Order(product, best_ask, -best_ask_volume))
+                        orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, 20 - position))))
 
                 # The below code block is similar to the one above,
                 # the difference is that it finds the highest bid (buy order)
@@ -56,7 +63,7 @@ class Trader:
                     best_bid_volume = order_depth.buy_orders[best_bid]
                     if best_bid > acceptable_price:
                         print("SELL", str(best_bid_volume) + "x", best_bid)
-                        orders.append(Order(product, best_bid, -best_bid_volume))
+                        orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, 20 + position))))
 
                 # Add all the above orders to the result dict
                 result[product] = orders
