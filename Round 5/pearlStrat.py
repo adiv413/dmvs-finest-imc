@@ -20,14 +20,28 @@ class Trader:
                 orders: list[Order] = []
 
 
-                orders.append(Order(product, 10002, -1))
-                orders.append(Order(product, 10003, -1))
-                orders.append(Order(product, 10004, -1))
+                # orders.append(Order(product, 10002, -1))
+                # orders.append(Order(product, 10003, -1))
+                # orders.append(Order(product, 10004, -1))
                 
 
-                orders.append(Order(product, 9998, 1))
-                orders.append(Order(product, 9997, 1))
-                orders.append(Order(product, 9996, 1))
+                # orders.append(Order(product, 9998, 1))
+                # orders.append(Order(product, 9997, 1))
+                # orders.append(Order(product, 9996, 1))
+                price = 10000
+                best_ask = min(order_depth[product].sell_orders.keys())
+                best_ask_volume = order_depth[product].sell_orders[best_ask]
+                best_bid = max(order_depth[product].buy_orders.keys())
+                best_bid_volume = order_depth[product].buy_orders[best_bid]
+
+                try:
+                    position = state.positions[product]
+                except:
+                    position = 0
+                if best_ask < price:
+                    orders.append(Order(product, best_ask, -best_ask_volume))
+                if best_bid > price:
+                    orders.append(Order(product, best_bid, -best_bid_volume))
 
                 
                 result[product] = orders

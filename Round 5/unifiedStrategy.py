@@ -26,10 +26,10 @@ class Trader:
     ############################
 
     ## LEVERS
-    pearlsBananas = False
-    pinasCoconuts = False
-    mayberries = False
-    diving_gear = False
+    pearlsBananas = True
+    pinasCoconuts = True
+    mayberries = True
+    diving_gear = True
     baskets = True
 
     ### PEARLS AND BANANAS
@@ -154,13 +154,13 @@ class Trader:
                     # logger.print("I AM IN THE RANGE")
                     # print(f'SELLING: Current position = {position}')
                 elif timestep >= close:
-                    orders.append(Order("BERRIES", best_bid, -position))
+                    orders.append(Order("BERRIES", best_ask, -position))
                     # logger.print("I AM IN THE RANGE")
                     # print(f'SELLING: Current position = {position}')
                 result["BERRIES"] = orders
 
             if product == "DIVING_GEAR" and self.diving_gear:
-                print(f'Dolphin sighting: {state.observations["DOLPHIN_SIGHTINGS"]}')
+                # print(f'Dolphin sighting: {state.observations["DOLPHIN_SIGHTINGS"]}')
                 # print(f'Diving Gear Mid Price: {self.stats["avg_prices"][product][-1]}')
                 dSighting = state.observations["DOLPHIN_SIGHTINGS"]
                 delta = dSighting - self.LAST_DOLPHIN_SIGHTING
