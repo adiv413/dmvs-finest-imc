@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import pearsonr, spearmanr
 import statsmodels.tsa.stattools as ts
 
-lines = open("Round 4/data/round2pnl.log").readlines()
+lines = open("Round 4/data/round5pnl.log").readlines()
 lines = [i for i in lines if ";" in i][1:]
 print(lines[0], lines[-1])
 products = {}
@@ -26,8 +26,8 @@ for i in products.keys():
 # plt.legend()
 # plt.show()
 
-print("picnic basket + estimation sum pearson", pearsonr(productsum, products["PICNIC_BASKET"]))
-print("picnic basket + estimation sum spearman", spearmanr(productsum, products["PICNIC_BASKET"]))
+# print("picnic basket + estimation sum pearson", pearsonr(productsum, products["PICNIC_BASKET"]))
+# print("picnic basket + estimation sum spearman", spearmanr(productsum, products["PICNIC_BASKET"]))
 
-print("dip + baguette pearson", pearsonr(products["DIP"], products["BAGUETTE"]))
-print("dip + baguette spearman", spearmanr(products["DIP"], products["BAGUETTE"]))
+# print("dip + baguette pearson", pearsonr(products["DIP"], products["BAGUETTE"]))
+# print("dip + baguette spearman", spearmanr(products["DIP"], products["BAGUETTE"]))
