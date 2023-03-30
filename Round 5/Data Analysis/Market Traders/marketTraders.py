@@ -49,7 +49,7 @@ def show_plots_for_product(product):
                 axs[i].axvline(sellTrades.iloc[j]['timestamp'], color='r')
         plt.show()
     elif plotType == 'spec':
-        print('Available traders: ', traders)
+        print('Available traders: ', productTraders)
         trader = input('Enter trader name: ')
         if trader in traders:
             fig, axs = plt.subplots(1, 1, sharex = True)
