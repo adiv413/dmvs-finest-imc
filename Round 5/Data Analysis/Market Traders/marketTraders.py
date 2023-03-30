@@ -9,18 +9,18 @@ plt.rcParams["figure.figsize"] = (10, 5)
 # price1 = pd.read_csv('price1.csv', sep = ';')
 # price2 = pd.read_csv('price2.csv', sep = ';')
 # price3 = pd.read_csv('price3.csv', sep = ';')
-price1 = pd.read_csv('Round 5\Data Analysis\Market Traders\price1.csv', sep = ';')
-price2 = pd.read_csv('Round 5\Data Analysis\Market Traders\price2.csv', sep = ';')
-price3 = pd.read_csv('Round 5\Data Analysis\Market Traders\price3.csv', sep = ';')
+price1 = pd.read_csv("Round 5/Data Analysis/Market Traders/price1.csv", sep = ';')
+price2 = pd.read_csv("Round 5/Data Analysis/Market Traders/price2.csv", sep = ';')
+price3 = pd.read_csv("Round 5/Data Analysis/Market Traders/price3.csv", sep = ';')
 
 price2['timestamp'] = price2['timestamp'] + price1['timestamp'].max() + 100
 price3['timestamp'] = price3['timestamp'] + price2['timestamp'].max() + 100
 
 combined = pd.concat([price1, price2, price3])
 
-trades1 = pd.read_csv("Round 5\Data Analysis\Market Traders\\trades1.csv", sep = ';')
-trades2 = pd.read_csv('Round 5\Data Analysis\Market Traders\\trades2.csv', sep = ';')
-trades3 = pd.read_csv('Round 5\Data Analysis\Market Traders\\trades3.csv', sep = ';')
+trades1 = pd.read_csv("Round 5/Data Analysis/Market Traders/trades1.csv", sep = ';')
+trades2 = pd.read_csv("Round 5/Data Analysis/Market Traders/trades2.csv", sep = ';')
+trades3 = pd.read_csv("Round 5/Data Analysis/Market Traders/trades3.csv", sep = ';')
 
 trades2['timestamp'] = trades2['timestamp'] + price1['timestamp'].max() + 100
 trades3['timestamp'] = trades3['timestamp'] + price2['timestamp'].max() + 100
@@ -43,7 +43,7 @@ products = ['PINA_COLADAS', 'DIP', 'BAGUETTE', 'PICNIC_BASKET', 'BERRIES', 'DIVI
 
 def show_plots_for_product(product):
     productTraders = [trader for trader in traders if product in buyOrders[trader]['symbol'].unique() or product in sellOrders[trader]['symbol'].unique()]
-    plotType = input('All traders, user specified trader, or loop through? (all/spec/loop): ')
+    plotType = "loop"
     if plotType == 'all':
         fig, axs = plt.subplots(len(productTraders), 1, sharex = True)
         for i in range(len(productTraders)):
@@ -91,7 +91,7 @@ def show_plots_for_product(product):
 
 def show_points_for_product(product): #same thing as above but with points instead of lines
     productTraders = [trader for trader in traders if product in buyOrders[trader]['symbol'].unique() or product in sellOrders[trader]['symbol'].unique()]
-    plotType = input('All traders, user specified trader, or loop through? (all/spec/loop): ')
+    plotType = "loop"
     if plotType == 'all':
         fig, axs = plt.subplots(len(productTraders), 1, sharex = True)
         for i in range(len(productTraders)):
@@ -110,7 +110,7 @@ def show_points_for_product(product): #same thing as above but with points inste
         plt.show()
     elif plotType == 'spec':
         print('Available traders: ', traders)
-        trader = input('Enter trader name: ')
+        trader = "Paris"
         if trader in traders:
             fig, axs = plt.subplots(1, 1, sharex = True)
             # axs.plot(productCharts[product]['timestamp'], productCharts[product]['mid_price'])
