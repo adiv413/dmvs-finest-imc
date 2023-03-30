@@ -124,8 +124,11 @@ def show_points_for_product(product): #same thing as above but with points inste
             sellTrades = sellTrades[sellTrades['symbol'] == product]
             for j in range(len(buyTrades)):
                 axs.scatter(buyTrades.iloc[j]['timestamp'], buyTrades.iloc[j]['price'], color = 'g')
+                print(f'BUY: {buyTrades.iloc[j]["quantity"]} x {buyTrades.iloc[j]["price"]}')
             for j in range(len(sellTrades)):
                 axs.scatter(sellTrades.iloc[j]['timestamp'], sellTrades.iloc[j]['price'], color = 'r')
+                print(f'SELL: {sellTrades.iloc[j]["quantity"]} x {sellTrades.iloc[j]["price"]}')
+
             plt.show()
     elif plotType == 'loop':
         for trader in productTraders:

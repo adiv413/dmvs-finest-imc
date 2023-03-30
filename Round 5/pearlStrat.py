@@ -14,18 +14,20 @@ class Trader:
 
         order_depth: OrderDepth = state.order_depths
         print("...")
-        for product in ["BANANAS"]:
+        for product in ["PEARLS"]:
             # Check if the current product is the 'PEARLS' product, only then run the order logic
             if product == 'PEARLS':
                 orders: list[Order] = []
 
-                orders.append(Order(product, 10002, -5))
-                orders.append(Order(product, 10003, -5))
-                orders.append(Order(product, 10004, -5))
+
+                orders.append(Order(product, 10002, -1))
+                orders.append(Order(product, 10003, -1))
+                orders.append(Order(product, 10004, -1))
                 
-                orders.append(Order(product, 9998, 5))
-                orders.append(Order(product, 9997, 5))
-                orders.append(Order(product, 9996, 5))
+
+                orders.append(Order(product, 9998, 1))
+                orders.append(Order(product, 9997, 1))
+                orders.append(Order(product, 9996, 1))
 
                 
                 result[product] = orders
