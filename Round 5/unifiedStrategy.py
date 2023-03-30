@@ -59,6 +59,8 @@ class Trader:
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         result = {}
+        print(state.toJSON())
+        print(state.market_trades["BANANAS"])
 
         order_depth: OrderDepth = state.order_depths
         self.COUNT += 1
