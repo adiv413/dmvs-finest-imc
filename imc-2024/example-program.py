@@ -14,6 +14,7 @@ class Trader:
         traderData = state.traderData
 
         for product in self.products:
+            
             order_depth: OrderDepth = state.order_depths[product]
             if len(order_depth.sell_orders)>0:
                 sell_orders = order_depth.sell_orders
