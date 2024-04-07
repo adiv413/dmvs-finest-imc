@@ -7,10 +7,12 @@ from math import floor
 
 class Trader:
 
+    products = ["AMETHYSTS", "STARFRUIT"]
+    
     ## MARKET MAKING PARAMETERS
-    RISK_ADJUSTMENT = {"BANANAS" : 0.1, "PEARLS" : 0.1}
-    ORDER_VOLUME = {"BANANAS" : 4, "PEARLS" : 5}
-    HALF_SPREAD_SIZE = {"BANANAS": 3, "PEARLS": 3}
+    RISK_ADJUSTMENT = {"AMETHYSTS" : 0.1, "STARFRUIT" : 0.1}
+    ORDER_VOLUME = {"AMETHYSTS" : 4, "STARFRUIT" : 5}
+    HALF_SPREAD_SIZE = {"AMETHYSTS": 3, "STARFRUIT": 3}
     ############################
 
     ## MCGINLEY PARAMETERS
@@ -20,27 +22,30 @@ class Trader:
         "avg_prices" : {},
         "count" : {},
         "acceptable_price" : {
-            "PEARLS" : 10000,
-            "BANANAS" : 4895
+            "STARFRUIT" : 10000,
+            "AMETHYSTS" : 4895
         } 
     }
     ############################
 
     ## POSITION SIZING PARAMS
-    MM_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
-    MM_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
-    MM_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
+    MM_POSITION_LIMIT = {"AMETHYSTS" : 10, "STARFRUIT" : 10}
+    MM_POSITION = {"AMETHYSTS" : 0, "STARFRUIT" : 0}
+    MM_LAST_ORDER_PRICE = {"AMETHYSTS" : {"BUY": 0, "SELL": 0}, "STARFRUIT" : {"BUY": 0, "SELL": 0}}
     ############################
-    MCGINLEY_POSITION_LIMIT = {"BANANAS" : 10, "PEARLS" : 10}
-    MCGINLEY_POSITION = {"BANANAS" : 0, "PEARLS" : 0}
-    MCGINLEY_LAST_ORDER_PRICE = {"BANANAS" : {"BUY": 0, "SELL": 0}, "PEARLS" : {"BUY": 0, "SELL": 0}}
+    MCGINLEY_POSITION_LIMIT = {"AMETHYSTS" : 10, "STARFRUIT" : 10}
+    MCGINLEY_POSITION = {"AMETHYSTS" : 0, "STARFRUIT" : 0}
+    MCGINLEY_LAST_ORDER_PRICE = {"AMETHYSTS" : {"BUY": 0, "SELL": 0}, "STARFRUIT" : {"BUY": 0, "SELL": 0}}
     ############################
     LAST_TIMESTAMP = -100000
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         result = {}
 
-        for product in state.order_depths.keys():
+        timestamp = state.timestamp
+        traderData = state.traderData
+
+        for product in self.products:
             orders: list[Order] = []
             order_depth: OrderDepth = state.order_depths[product]
 
@@ -159,4 +164,7 @@ class Trader:
         self.LAST_TIMESTAMP = state.timestamp
         
         print('\n----------------------------------------------------------------------------------------------------\n')
-        return result
+        traderData = "SAMPLE" # String value holding Trader state data required. It will be delivered as TradingState.traderData on next execution.
+        conversions = 0
+
+        return result, conversions, traderData

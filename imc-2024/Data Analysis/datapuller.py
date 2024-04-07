@@ -9,11 +9,12 @@ class Trader:
         # print(f'{state.timestamp} ')
         # print("traderData: " + state.traderData)
         # print("Observations: " + str(state.observations))
-        timestamp = state.timestamp
+        
         result = {}
         traderData = state.traderData
-
+        skipTimeStamp = True
         for product in self.products:
+            timestamp = state.timestamp
             order_depth: OrderDepth = state.order_depths[product]
             if len(order_depth.sell_orders)>0:
                 sell_orders = order_depth.sell_orders
@@ -24,10 +25,14 @@ class Trader:
                 best_bid = max(order_depth.buy_orders.keys())
                 best_bid_volume = order_depth.buy_orders[best_bid]
             spread = best_ask - best_bid
-            print(f'{timestamp} , {product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {spread}')
+            if skipTimeStamp:
+                skipTimeStamp = False
+                print(f', {product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {spread}')
+            else:
+                print(f'{timestamp} , {product}, {best_ask}, {best_ask_volume}, {best_bid}, {best_bid_volume}, {spread}')
     
-    
+            print(f'{timestamp}, {state.observations}')
+
         traderData = "SAMPLE" # String value holding Trader state data required. It will be delivered as TradingState.traderData on next execution.
-        
         conversions = 0
         return result, conversions, traderData
