@@ -107,6 +107,6 @@ starfruit = products['STARFRUIT']
 #the above did not show all columns because the columns are too many
 # fix it
 pd.set_option('display.max_columns', None)
-print(amethysts.head())
+plot_prices(products)
 # plot_spreads(products)
-plot_bid1_bid2_ask1_ask2(products)
+# plot_bid1_bid2_ask1_ask2(products)
