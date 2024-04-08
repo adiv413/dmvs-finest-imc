@@ -60,10 +60,16 @@ def plot_prices(products): #should plot on different graphs, price should be act
 
 def plot_bid1_bid2_ask1_ask2(products):
     for product in products:
-        plt.plot(products[product]['bid_price_1'])
-        plt.plot(products[product]['bid_price_2'])
-        plt.plot(products[product]['ask_price_1'])
-        plt.plot(products[product]['ask_price_2'])
+        # plt.plot(products[product]['bid_price_1'])
+        # plt.plot(products[product]['bid_price_2'])
+        # plt.plot(products[product]['ask_price_1'])
+        # plt.plot(products[product]['ask_price_2'])
+        # plot the price and both bids and asks. Make price black, bid1 blue, bid2 light blue, ask1 red, ask2 light red
+        plt.plot(products[product]['price'], color='black')
+        plt.plot(products[product]['bid_price_1'], color='blue')
+        plt.plot(products[product]['bid_price_2'], color='lightblue')
+        plt.plot(products[product]['ask_price_1'], color='red')
+        plt.plot(products[product]['ask_price_2'], color='lightcoral')
         plt.title(f'{product} Bid1, Bid2, Ask1, Ask2')
         plt.show()
 
@@ -96,5 +102,11 @@ def plot_secondary_spread(products):
 products = pullData()
 amethysts = products['AMETHYSTS']
 starfruit = products['STARFRUIT']
+#print the head of amethysts but show all columns
+# print(amethysts.head())
+#the above did not show all columns because the columns are too many
+# fix it
+pd.set_option('display.max_columns', None)
+print(amethysts.head())
 # plot_spreads(products)
-plot_secondary_spread(products)
+plot_bid1_bid2_ask1_ask2(products)
