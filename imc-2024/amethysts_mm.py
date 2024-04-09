@@ -12,6 +12,7 @@ class Trader:
     POSITION_LIMIT = {"AMETHYSTS": 20, "STARFRUIT": 20}
 
     AMETHYST_PRICE = 10000
+    STARFRUIT_PRICE = -1
 
     def values_extract(self, order_dict, buy=0):
         tot_vol = 0
@@ -28,7 +29,7 @@ class Trader:
         
         return tot_vol, best_val
     
-    def compute_orders_amethyst(self, product, order_depth, position):
+    def market_make_amethyst(self, product, order_depth, position):
         orders: list[Order] = []
 
         osell = collections.OrderedDict(sorted(order_depth.sell_orders.items()))
@@ -92,8 +93,9 @@ class Trader:
                 position = state.position[product]
             except:
                 position = 0
+
             if product == 'AMETHYSTS':
-                orders = self.compute_orders_market_making(product, order_depth, position)
+                orders = self.market_make_amethyst(product, order_depth, position)
                 result[product] = orders
                 continue
 
