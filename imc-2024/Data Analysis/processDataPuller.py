@@ -55,4 +55,9 @@ def plot_prices(products): #should plot on different graphs, price should be act
 products = pullData()
 amethysts = products['AMETHYSTS']
 starfruit = products['STARFRUIT']
-plot_prices(products)
+# plot_prices(products)
+#compute the volatility, sigma, of the price of amethysts and starfruit
+amethyst_sigma = amethysts['price'].std()
+starfruit_sigma = starfruit['price'].std()
+print(f'Amethysts Sigma: {amethyst_sigma}')
+print(f'Starfruit Sigma: {starfruit_sigma}')
