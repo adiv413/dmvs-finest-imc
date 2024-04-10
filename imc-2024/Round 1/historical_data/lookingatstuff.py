@@ -158,4 +158,4 @@ for path in paths:
 for day in days:
     plot_price_bid1_ask1({"STARFRUIT": day["STARFRUIT"]})
 
-# HMA(days[0]["STARFRUIT"], 50)
+HMA(days[0]["STARFRUIT"], 50)
