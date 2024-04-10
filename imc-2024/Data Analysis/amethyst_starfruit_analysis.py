@@ -17,7 +17,11 @@ for index, row in df.iterrows():
         y_starfruit.append(row['mid_price'])
 
 plt.figure(figsize=(20, 6))
-#plt.plot(x_amethysts, y_amethysts, label='amethysts_price')
+plt.plot(x_amethysts, y_amethysts, label='amethysts_price')
+plt.xlabel('timestamp')
+plt.ylabel('price')
+plt.legend()
+plt.show()
 plt.plot(x_starfruit, y_starfruit, label='starfruit_price')
 plt.xlabel('timestamp')
 plt.ylabel('price')
