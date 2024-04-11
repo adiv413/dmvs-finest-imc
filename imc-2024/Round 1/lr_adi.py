@@ -87,7 +87,7 @@ class Trader:
                 "count" : {},
                 "acceptable_price" : {
                     "AMETHYSTS" : 10000,
-                    "STARFRUIT" : 4895
+                    "STARFRUIT" : 5050
                 } 
             }
             ############################
