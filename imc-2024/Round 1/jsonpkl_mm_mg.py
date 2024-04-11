@@ -28,8 +28,8 @@ class Trader:
                 "avg_prices" : {},
                 "count" : {},
                 "acceptable_price" : {
-                    "STARFRUIT" : 10000,
-                    "AMETHYSTS" : 4895
+                    "AMETHYSTS" : 10000,
+                    "STARFRUIT" : 5400
                 } 
             }
             ############################
