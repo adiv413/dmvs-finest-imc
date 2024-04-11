@@ -147,15 +147,59 @@ def SMMA(product_df, period = 20):
     plt.plot(SMMA_DF['price'])
     plt.plot(SMMA_DF['SMMA'])
     plt.show()
+def custom_MA(product_df, period1 = 10, period2 = 100):
+    #copy the bid, ask, and price columns into a new df called MA_DF
+    MA_DF = product_df[['price', 'bid_price_1', 'ask_price_1', 'spread']].copy()
+    #calculate the moving average with length period, but only use the price if the spread is greater than 4
+    rolling_window = []
+    for row, timestamp in enumerate(MA_DF.index):
+        if len(rolling_window) < period1 and MA_DF['spread'][timestamp] > 4:
+            rolling_window.append(MA_DF['price'][timestamp])
+        elif len(rolling_window) == period1 and MA_DF['spread'][timestamp] > 4:
+            rolling_window.pop(0)
+            rolling_window.append(MA_DF['price'][timestamp])
+        if len(rolling_window) == period1:
+            MA_DF.at[timestamp, 'MA'] = sum(rolling_window) / period1
+    # now graph the price and the MA
+    print(MA_DF.head())
+    # plt.plot(MA_DF['price'])
+    #plot bid and ask
+    #make a longer EMA using the 50 period
+    MA_DF['EMA1'] = MA_DF['price'].ewm(span=period2).mean()
+    # plt.plot(MA_DF['bid_price_1'])
+    # plt.plot(MA_DF['ask_price_1'])
+    # plt.plot(MA_DF['MA'])
+    # plt.plot(MA_DF['EMA'])
+    # #make a column for the difference between MA and EMA
+    MA_DF['diff'] = MA_DF['EMA1'] - MA_DF['MA']
+    # make a vertically stacked graph, one with ask and bid and both moving averages, and one with the difference between the two
+    #in the second graph, make horizontal lines at -1 and 1
+    fig, ax = plt.subplots(2, 1)
+    # ax[0].plot(MA_DF['price'])
+    ax[0].plot(MA_DF['MA'])
+    ax[0].plot(MA_DF['EMA1'])
+    ax[0].plot(MA_DF['bid_price_1'])
+    ax[0].plot(MA_DF['ask_price_1'])
+    ax[1].plot(MA_DF['diff'])
+    ax[1].axhline(y=1, color='r', linestyle='--')
+    ax[1].axhline(y=-1, color='r', linestyle='--')
+    plt.show()
 
 
-paths = ["imc-2024\Round 1\historical_data\prices_round_1_day_-2.csv", "imc-2024\Round 1\historical_data\prices_round_1_day_-1.csv", "imc-2024\Round 1\historical_data\prices_round_1_day_0.csv"]
+
+
+# paths = ["imc-2024\Round 1\historical_data\prices_round_1_day_-2.csv", "imc-2024\Round 1\historical_data\prices_round_1_day_-1.csv", "imc-2024\Round 1\historical_data\prices_round_1_day_0.csv"]
+paths = ["imc-2024\Round 1\historical_data\91ba4cbd-c7ee-4fd6-b127-788638cb662f.csv"]
 days = []
 for path in paths:
     days.append(pullData(path))
 
 # plot prices of each day for just starfruit
-for day in days:
-    plot_price_bid1_ask1({"STARFRUIT": day["STARFRUIT"]})
+# for day in days:
+#     plot_price_bid1_ask1({"STARFRUIT": day["STARFRUIT"]})
 
-HMA(days[0]["STARFRUIT"], 50)
+# HMA(days[0]["STARFRUIT"], 50)
+#graph the spread of starfruit
+# plot_spreads({"STARFRUIT": days[0]["STARFRUIT"]})
+
+custom_MA(days[0]["STARFRUIT"])
