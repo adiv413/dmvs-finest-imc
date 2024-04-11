@@ -4,3 +4,4 @@ test.py
 *.log
 imc-2023/Round 5/Data Analysis/Market Traders/all_csvs
 .vscode/
+venv/
