@@ -5,7 +5,7 @@ from datamodel import OrderDepth, TradingState, Order
 from math import floor
 import jsonpickle
 import collections
-
+# from statistics import linear_regression
 class Trader:
 
     products = ["AMETHYSTS", "STARFRUIT"]
@@ -13,21 +13,6 @@ class Trader:
 
     AMETHYST_PRICE = 10000
     STARFRUIT_PRICE = -1
-
-    def values_extract(self, order_dict, buy=0):
-        tot_vol = 0
-        best_val = -1
-        mxvol = -1
-
-        for ask, vol in order_dict.items():
-            if(buy==0):
-                vol *= -1
-            tot_vol += vol
-            if tot_vol > mxvol:
-                mxvol = vol
-                best_val = ask
-        
-        return tot_vol, best_val
     
     def market_make_amethyst(self, product, order_depth, position):
         orders: list[Order] = []
@@ -84,6 +69,8 @@ class Trader:
         result = {}
 
         timestamp = state.timestamp
+        LR_LOOKBACK = 14
+        EMA_LOOKBACK = 10
 
         if timestamp == 0:
     
@@ -93,12 +80,13 @@ class Trader:
             HALF_SPREAD_SIZE = {"AMETHYSTS": 3, "STARFRUIT": 3}
             ############################
 
-            ## MCGINLEY PARAMETERS
+            ## ALGO PARAMETERS
             prices = {
                 "asks" : {}, 
                 "bids" : {},
                 "avg_prices" : {},
                 "count" : {},
+                "EMA" : {},
                 "acceptable_price" : {
                     "AMETHYSTS" : 10000,
                     "STARFRUIT" : 4895
@@ -107,18 +95,21 @@ class Trader:
             ############################
 
             ## POSITION SIZING PARAMS
-            MM_POSITION_LIMIT = {"AMETHYSTS" : 10, "STARFRUIT" : 0}
+            MM_POSITION_LIMIT = {"AMETHYSTS" : 20, "STARFRUIT" : 0}
             MM_POSITION = {"AMETHYSTS" : 0, "STARFRUIT" : 0}
             MM_LAST_ORDER_PRICE = {"AMETHYSTS" : {"BUY": 0, "SELL": 0}, "STARFRUIT" : {"BUY": 0, "SELL": 0}}
             ############################
-            MCGINLEY_POSITION_LIMIT = {"AMETHYSTS" : 10, "STARFRUIT" : 20}
-            MCGINLEY_POSITION = {"AMETHYSTS" : 0, "STARFRUIT" : 0}
-            MCGINLEY_LAST_ORDER_PRICE = {"AMETHYSTS" : {"BUY": 0, "SELL": 0}, "STARFRUIT" : {"BUY": 0, "SELL": 0}}
+            ALGO_POSITION_LIMIT = {"AMETHYSTS" : 0, "STARFRUIT" : 20}
+            ALGO_POSITION = {"AMETHYSTS" : 0, "STARFRUIT" : 0}
+            ALGO_LAST_ORDER_PRICE = {"AMETHYSTS" : {"BUY": 0, "SELL": 0}, "STARFRUIT" : {"BUY": 0, "SELL": 0}}
             ############################
             LAST_TIMESTAMP = -100000
+            PREV_PRICES = []
+            PREV_TIMESTAMPS = []
+
         else:
             traderData = jsonpickle.decode(state.traderData)
-            RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, MM_LAST_ORDER_PRICE, MCGINLEY_POSITION_LIMIT, MCGINLEY_POSITION, MCGINLEY_LAST_ORDER_PRICE, LAST_TIMESTAMP = traderData
+            RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS = traderData
 
         for product in self.products:
             orders: list[Order] = []
@@ -137,8 +128,6 @@ class Trader:
 
                 result[product] = orders
             else:
-
-
                 if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
                     ##GET TRADES
                     try:
@@ -156,13 +145,13 @@ class Trader:
                                 MM_POSITION[product] -= trade.quantity
                     ##############################
 
-                    ## CALCULATING THE POSITION SIZE OF MCGINLEY
+                    ## CALCULATING THE POSITION SIZE OF ALGO
                     for trade in own_trades:
                         if trade.timestamp == LAST_TIMESTAMP:
-                            if trade.buyer == "SUBMISSION" and trade.price == MCGINLEY_LAST_ORDER_PRICE[product]["BUY"]:
-                                MCGINLEY_POSITION[product] += trade.quantity
-                            elif trade.seller == "SUBMISSION" and trade.price == MCGINLEY_LAST_ORDER_PRICE[product]["SELL"]:
-                                MCGINLEY_POSITION[product] -= trade.quantity
+                            if trade.buyer == "SUBMISSION" and trade.price == ALGO_LAST_ORDER_PRICE[product]["BUY"]:
+                                ALGO_POSITION[product] += trade.quantity
+                            elif trade.seller == "SUBMISSION" and trade.price == ALGO_LAST_ORDER_PRICE[product]["SELL"]:
+                                ALGO_POSITION[product] -= trade.quantity
                     ##############################
 
                     ## CALCULATING STATS
@@ -179,11 +168,7 @@ class Trader:
                     sell_quote = floor(value + HALF_SPREAD_SIZE[product] + skew)
                     ##############################
 
-                    ## MCGINLEY STRATEGY
-                    if state.timestamp != 0:
-                        mcginley_price = prices["acceptable_price"][product]
-                    else:
-                        mcginley_price = value
+                    ## ALGO STRATEGY
 
                     if product not in prices["asks"]:
                         prices["asks"][product] = []
@@ -193,10 +178,7 @@ class Trader:
                     prices["asks"][product].append(best_ask)
                     prices["bids"][product].append(best_bid)
 
-                    n=10
-                    k=0.67
                     curr_price = value
-
                     # first iteration
                     if product not in prices["avg_prices"]:
                         prices["avg_prices"][product] = [curr_price]
@@ -204,17 +186,19 @@ class Trader:
 
                         # don't place orders in the first iteration
                         result[product] = orders
-                        conversions = 0
-                        traderData = jsonpickle.encode([RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, 
-                                                        MM_POSITION, MM_LAST_ORDER_PRICE, MCGINLEY_POSITION_LIMIT, MCGINLEY_POSITION, MCGINLEY_LAST_ORDER_PRICE, LAST_TIMESTAMP])
-                        return result, conversions, traderData
+                        continue
+                    
+                    i = len(prices["avg_prices"][product]) - 1 # index of current price
+                    n_lookback_index = max(i - EMA_LOOKBACK, 0) # make sure we don't accidentally lookback into the negative indices
+                    # calculate the ema of the last n prices
+                    K = 2 / (EMA_LOOKBACK + 1)
+                    if(product not in prices["EMA"]):
+                        prices["EMA"][product] = prices["avg_prices"][product][i]
+                    ema = (prices["avg_prices"][product][i] - prices["EMA"][product]) * K + prices["EMA"][product]
+                    prices["EMA"][product] = ema
 
-                    mcginley_price = mcginley_price + (curr_price-mcginley_price)/(k * n * (curr_price/mcginley_price)**4)
+                    acceptable_price = prices["EMA"][product]
 
-                    prices["acceptable_price"][product] = mcginley_price
-                    prices["avg_prices"][product].append(mcginley_price)
-                
-                    acceptable_price = prices["acceptable_price"][product]
                     ##############################
 
                     ## MARKET MAKING ORDERS
@@ -223,20 +207,20 @@ class Trader:
                     MM_LAST_ORDER_PRICE[product] = {"BUY": buy_quote, "SELL": sell_quote}
                     ##############################
 
-                    ## MCGINLEY ORDERS
+                    ## ALGO ORDERS
                     if best_ask < acceptable_price and best_ask != buy_quote: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
                         # print("BUY", str(-best_ask_volume) + "x", best_ask)
-                        orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, MCGINLEY_POSITION_LIMIT[product] - MCGINLEY_POSITION[product]))))
-                        MCGINLEY_LAST_ORDER_PRICE[product]["BUY"] = best_ask
+                        orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, ALGO_POSITION_LIMIT[product] - ALGO_POSITION[product]))))
+                        ALGO_LAST_ORDER_PRICE[product]["BUY"] = best_ask
                     else:
-                        MCGINLEY_LAST_ORDER_PRICE[product]["BUY"] = 0
+                        ALGO_LAST_ORDER_PRICE[product]["BUY"] = 0
 
                     if best_bid > acceptable_price and best_bid != sell_quote: #second part of and is so that orders don't overlap, which lets me individually keep track of positions
                         # print("SELL", str(best_bid_volume) + "x", best_bid)
-                        orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, MCGINLEY_POSITION_LIMIT[product] + MCGINLEY_POSITION[product]))))
-                        MCGINLEY_LAST_ORDER_PRICE[product]["SELL"] = best_bid
+                        orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, ALGO_POSITION_LIMIT[product] + ALGO_POSITION[product]))))
+                        ALGO_LAST_ORDER_PRICE[product]["SELL"] = best_bid
                     else:
-                        MCGINLEY_LAST_ORDER_PRICE[product]["SELL"] = 0
+                        ALGO_LAST_ORDER_PRICE[product]["SELL"] = 0
                     ##############################
                     
                     ## PRINT STATS
@@ -249,7 +233,7 @@ class Trader:
                     
                     print(f'Actual position: {position}')
                     print('Estimated MM position: ', MM_POSITION[product])
-                    print('Estimated MCGINLEY position: ', MCGINLEY_POSITION[product])
+                    print('Estimated ALGO position: ', ALGO_POSITION[product])
                     ##############################
                     
                     result[product] = orders
@@ -258,7 +242,7 @@ class Trader:
         
         print('\n----------------------------------------------------------------------------------------------------\n')
         params = [RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, 
-                  MM_LAST_ORDER_PRICE, MCGINLEY_POSITION_LIMIT, MCGINLEY_POSITION, MCGINLEY_LAST_ORDER_PRICE, LAST_TIMESTAMP]
+                  MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS]
         traderData = jsonpickle.encode(params) # String value holding Trader state data required. It will be delivered as TradingState.traderData on next execution.
         conversions = 0
 
