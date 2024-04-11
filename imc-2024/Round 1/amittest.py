@@ -197,7 +197,8 @@ class Trader:
                     PREV_PRICES.append(curr_price)
                     PREV_TIMESTAMPS.append(state.timestamp)
 
-                    coeffs = [0.1716,  0.1983,  0.2647,  0.3654]
+                    #coeffs = [0.1716,  0.1983,  0.2647,  0.3654]
+                    coeffs = [0.1929, 0.1965, 0.2635, 0.347]
 
                     m, b = linear_regression(PREV_TIMESTAMPS, PREV_PRICES)
 
@@ -205,9 +206,9 @@ class Trader:
                     for i, val in enumerate(PREV_PRICES[-4:]):
                          acceptable_price += val * coeffs[i]
 
-                    #next_time = state.timestamp + (PREV_TIMESTAMPS[-1] - PREV_TIMESTAMPS[-2])
+                    next_time = state.timestamp + (PREV_TIMESTAMPS[-1] - PREV_TIMESTAMPS[-2])
 
-                    #acceptable_price = ((m * next_time + b) + acceptable_price) / 2
+                    acceptable_price = ((m * next_time + b) + acceptable_price) / 2
 
                     prices["acceptable_price"][product] = acceptable_price
                     prices["avg_prices"][product].append(acceptable_price)
