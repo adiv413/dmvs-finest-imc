@@ -6,7 +6,6 @@ from math import floor
 import jsonpickle
 import collections
 from statistics import linear_regression
-import collections
 class Trader:
 
     products = ["AMETHYSTS", "STARFRUIT"]
@@ -14,7 +13,60 @@ class Trader:
 
     AMETHYST_PRICE = 10000
     STARFRUIT_PRICE = -1
-    
+    def values_extract(self, order_dict, buy=0):
+        tot_vol = 0
+        best_val = -1
+        mxvol = -1
+
+        for ask, vol in order_dict.items():
+            if(buy==0):
+                vol *= -1
+            tot_vol += vol
+            if tot_vol > mxvol:
+                mxvol = vol
+                best_val = ask
+        
+        return tot_vol, best_val
+    def linear_regression_starfruit(self, product, order_depth, acc_bid, acc_ask, position, LIMIT):
+        orders: list[Order] = []
+        osell = collections.OrderedDict(sorted(order_depth.sell_orders.items()))
+        obuy = collections.OrderedDict(sorted(order_depth.buy_orders.items(), reverse=True))
+        sell_vol, best_sell_pr = self.values_extract(osell, 0)
+        buy_vol, best_buy_pr = self.values_extract(obuy, 1)
+        cpos = position
+        for ask, vol in osell.items():
+            if ((ask <= acc_bid) or ((position<0) and (ask == acc_bid+1))) and cpos < LIMIT:
+                order_for = min(-vol, LIMIT - cpos)
+                cpos += order_for
+                assert(order_for >= 0)
+                orders.append(Order(product, ask, order_for))
+
+        undercut_buy = best_buy_pr + 1
+        undercut_sell = best_sell_pr - 1
+
+        bid_pr = min(undercut_buy, acc_bid) # we will shift this by 1 to beat this price
+        sell_pr = max(undercut_sell, acc_ask)
+
+        if cpos < LIMIT:
+            num = LIMIT - cpos
+            orders.append(Order(product, bid_pr, num))
+            cpos += num
+        
+        cpos = position
+
+        for bid, vol in obuy.items():
+            if ((bid >= acc_ask) or ((position>0) and (bid+1 == acc_ask))) and cpos > -LIMIT:
+                order_for = max(-vol, -LIMIT-cpos)
+                # order_for is a negative number denoting how much we will sell
+                cpos += order_for
+                assert(order_for <= 0)
+                orders.append(Order(product, bid, order_for))
+
+        if cpos > -LIMIT:
+            num = -LIMIT-cpos
+            orders.append(Order(product, sell_pr, num))
+            cpos += num
+        return orders
     def market_make_amethyst(self, product, order_depth, position):
         orders: list[Order] = []
 
@@ -84,7 +136,10 @@ class Trader:
             prices = {
                 "asks" : {}, 
                 "bids" : {},
-                "avg_prices" : {},
+                "avg_prices" : {
+                    "AMETHYSTS": [],
+                    "STARFRUIT": []
+                },
                 "count" : {},
                 "acceptable_price" : {
                     "AMETHYSTS" : 10000,
@@ -94,11 +149,11 @@ class Trader:
             ############################
 
             ## POSITION SIZING PARAMS
-            MM_POSITION_LIMIT = {"AMETHYSTS" : 20, "STARFRUIT" : 0}
+            MM_POSITION_LIMIT = {"AMETHYSTS" : 0, "STARFRUIT" : 0}
             MM_POSITION = {"AMETHYSTS" : 0, "STARFRUIT" : 0}
             MM_LAST_ORDER_PRICE = {"AMETHYSTS" : {"BUY": 0, "SELL": 0}, "STARFRUIT" : {"BUY": 0, "SELL": 0}}
             ############################
-            ALGO_POSITION_LIMIT = {"AMETHYSTS" : 0, "STARFRUIT" : 20}
+            ALGO_POSITION_LIMIT = {"AMETHYSTS" : 20, "STARFRUIT" : 20}
             ALGO_POSITION = {"AMETHYSTS" : 0, "STARFRUIT" : 0}
             ALGO_LAST_ORDER_PRICE = {"AMETHYSTS" : {"BUY": 0, "SELL": 0}, "STARFRUIT" : {"BUY": 0, "SELL": 0}}
             ############################
@@ -126,6 +181,7 @@ class Trader:
                     continue
 
                 result[product] = orders
+
             else:
 
 
@@ -156,8 +212,6 @@ class Trader:
                     ##############################
 
                     ## CALCULATING STATS
-                    osell = collections.OrderedDict(sorted(order_depth.sell_orders.items()))
-                    obuy = collections.OrderedDict(sorted(order_depth.buy_orders.items(), reverse=True))
                     best_bid = max(order_depth.buy_orders.keys())
                     best_ask = min(order_depth.sell_orders.keys())
                     best_bid_volume = order_depth.buy_orders[best_bid]
@@ -204,7 +258,7 @@ class Trader:
 
                     next_time = state.timestamp + (PREV_TIMESTAMPS[-1] - PREV_TIMESTAMPS[-2])
 
-                    acceptable_price = m * next_time + b
+                    acceptable_price = int(round(m * next_time + b))
 
                     prices["acceptable_price"][product] = acceptable_price
                     prices["avg_prices"][product].append(acceptable_price)
@@ -218,60 +272,10 @@ class Trader:
                     ##############################
 
                     ## ALGO ORDERS
-                    acc_bid, acc_ask = acceptable_price - 1, acceptable_price + 1
-                    mx_with_buy = -1
-                    curr_pos = ALGO_POSITION[product]
-                    for ask, vol in osell.items():
-                        if ((ask < acc_bid) or ((ALGO_POSITION[product] < 0) and (ask == acc_bid))) and curr_pos < ALGO_POSITION_LIMIT['AMETHYSTS']:
-                            mx_with_buy = max(mx_with_buy, ask)
-                            order_for = min(-vol, self.POSITION_LIMIT[product] - curr_pos)
-                            curr_pos += order_for
-                            assert(order_for >= 0)
-                            orders.append(Order(product, ask, order_for))
-                    undercut_buy = best_ask + 1
-                    undercut_sell = best_bid - 1
+                    acceptable_price_lb = acceptable_price - 1
+                    acceptable_price_ub = acceptable_price + 1
+                    orders = self.linear_regression_starfruit(product, order_depth, acceptable_price_lb, acceptable_price_ub, ALGO_POSITION[product], ALGO_POSITION_LIMIT[product])
 
-                    bid_price = min(undercut_buy, acc_bid - 1)
-                    sell_price = max(undercut_sell, acc_ask + 1)
-
-                    if (curr_pos < ALGO_POSITION_LIMIT['AMETHYSTS']) and (ALGO_POSITION[product] < 0):
-                        num = min(20, ALGO_POSITION_LIMIT['AMETHYSTS'] - curr_pos)
-                        orders.append(Order(product, min(undercut_buy + 1, acc_bid - 1), num))
-                        curr_pos += num
-
-                    if (curr_pos < ALGO_POSITION_LIMIT['AMETHYSTS']) and (ALGO_POSITION[product] > 7.5):
-                        num = min(20, ALGO_POSITION_LIMIT['AMETHYSTS'] - curr_pos)
-                        orders.append(Order(product, min(undercut_buy - 1, acc_bid - 1), num))
-                        curr_pos += num
-
-                    if curr_pos < ALGO_POSITION_LIMIT['AMETHYSTS']:
-                        num = min(20, ALGO_POSITION_LIMIT['AMETHYSTS'] - curr_pos)
-                        orders.append(Order(product, bid_price, num))
-                        curr_pos += num
-
-                    curr_pos = ALGO_POSITION[product]
-                    for bid, vol in obuy.items():
-                        if ((bid > acc_ask) or ((ALGO_POSITION[product] > 0) and (bid == acc_ask))) and curr_pos > -ALGO_POSITION_LIMIT['AMETHYSTS']:
-                            order_for = max(-vol, -ALGO_POSITION_LIMIT['AMETHYSTS'] - curr_pos)
-                            # order_for is a negative number denoting how much we will sell
-                            curr_pos += order_for
-                            assert(order_for <= 0)
-                            orders.append(Order(product, bid, order_for))
-
-                    if (curr_pos > -ALGO_POSITION_LIMIT['AMETHYSTS']) and (ALGO_POSITION[product] > 0):
-                        num = max(-20, -ALGO_POSITION_LIMIT['AMETHYSTS'] - curr_pos)
-                        orders.append(Order(product, max(undercut_sell - 1, acc_ask + 1), num))
-                        curr_pos += num
-
-                    if (curr_pos > -ALGO_POSITION_LIMIT['AMETHYSTS']) and (ALGO_POSITION[product] < -7.5):
-                        num = max(-20, -ALGO_POSITION_LIMIT['AMETHYSTS'] - curr_pos)
-                        orders.append(Order(product, max(undercut_sell + 1, acc_ask + 1), num))
-                        curr_pos += num
-
-                    if curr_pos > -ALGO_POSITION_LIMIT['AMETHYSTS']:
-                        num = max(-20, -ALGO_POSITION_LIMIT['AMETHYSTS'] - curr_pos)
-                        orders.append(Order(product, sell_price, num))
-                        curr_pos += num
                     ##############################
                     
                     ## PRINT STATS
