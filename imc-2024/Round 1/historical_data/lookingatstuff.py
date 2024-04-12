@@ -188,8 +188,8 @@ def custom_MA(product_df, period1 = 10, period2 = 100):
 
 
 
-# paths = ["imc-2024\Round 1\historical_data\prices_round_1_day_-2.csv", "imc-2024\Round 1\historical_data\prices_round_1_day_-1.csv", "imc-2024\Round 1\historical_data\prices_round_1_day_0.csv"]
-paths = ["imc-2024\Round 1\historical_data\91ba4cbd-c7ee-4fd6-b127-788638cb662f.csv"]
+paths = ["prices_round_1_day_-2.csv", "prices_round_1_day_-1.csv", "prices_round_1_day_0.csv"]
+#paths = ["imc-2024\Round 1\historical_data\91ba4cbd-c7ee-4fd6-b127-788638cb662f.csv"]
 days = []
 for path in paths:
     days.append(pullData(path))
@@ -202,4 +202,6 @@ for path in paths:
 #graph the spread of starfruit
 # plot_spreads({"STARFRUIT": days[0]["STARFRUIT"]})
 
-custom_MA(days[0]["STARFRUIT"])
+#custom_MA(days[0]["STARFRUIT"])
+#plot_spreads({"STARFRUIT": days[0]["STARFRUIT"]})
+plot_prices({"STARFRUIT": days[0]["STARFRUIT"]})
