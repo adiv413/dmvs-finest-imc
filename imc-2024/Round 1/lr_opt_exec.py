@@ -34,51 +34,51 @@ class Trader:
 
         osell = collections.OrderedDict(sorted(order_depth.sell_orders.items()))
         obuy = collections.OrderedDict(sorted(order_depth.buy_orders.items(), reverse=True))
-        buyReserve = min(20, 20-position)
-        sellReserve = max(-20, -20-position)
+        buyReserve = min(20, 20 - position)
+        sellReserve = max(-20, -20 - position)
+
+        ###################################################################
         ## Market Taking
         #BUYING
         print(f'Position: {position}')
         for sellOrder in osell:
             if sellOrder < self.AMETHYST_PRICE:
                 orders.append(Order(product, sellOrder, min(buyReserve,-osell[sellOrder])))
-                buyReserve -= min(buyReserve,-osell[sellOrder])
-                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve,-osell[sellOrder])}')
+                buyReserve -= min(buyReserve, -osell[sellOrder])
+                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve, -osell[sellOrder])}')
             elif sellOrder == self.AMETHYST_PRICE and position < 0:
-                orders.append(Order(product, sellOrder, min(buyReserve,-osell[sellOrder])))
-                buyReserve -= min(buyReserve,-osell[sellOrder])
-                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve,-osell[sellOrder])}')
-               
-        #BUYING
+                orders.append(Order(product, sellOrder, min(buyReserve, -osell[sellOrder])))
+                buyReserve -= min(buyReserve, -osell[sellOrder])
+                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve, -osell[sellOrder])}')
 
         #SELLING    
         for buyOrder in obuy:
             if buyOrder > self.AMETHYST_PRICE:
-                orders.append(Order(product, buyOrder, max(sellReserve,-obuy[buyOrder])))
-                sellReserve -= max(sellReserve,-obuy[buyOrder])
-                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve,-obuy[buyOrder])}')
+                orders.append(Order(product, buyOrder, max(sellReserve, -obuy[buyOrder])))
+                sellReserve -= max(sellReserve, -obuy[buyOrder])
+                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve, -obuy[buyOrder])}')
             elif buyOrder == self.AMETHYST_PRICE and position > 0:
-                orders.append(Order(product, buyOrder, max(sellReserve,-obuy[buyOrder])))
-                sellReserve -= max(sellReserve,-obuy[buyOrder])
-                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve,-obuy[buyOrder])}')
-               
-        # SELLING
+                orders.append(Order(product, buyOrder, max(sellReserve, -obuy[buyOrder])))
+                sellReserve -= max(sellReserve, -obuy[buyOrder])
+                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve, -obuy[buyOrder])}')
 
         print(f'Position: {position}')
         ###################################################################
-
         ## Market Making
         best_bid = list(obuy.keys())[0]
         best_ask = list(osell.keys())[0]
-        #sell order
-        orders.append(Order(product, max(best_ask-1, self.AMETHYST_PRICE+1), sellReserve))
-        print(f'Market Making Sell Order at {max(best_ask-1, self.AMETHYST_PRICE+1)} with volume {sellReserve}')
-        #buy order
-        orders.append(Order(product, min(best_bid+1, self.AMETHYST_PRICE-1), buyReserve))
-        print(f'Market Making Buy Order at {min(best_bid+1, self.AMETHYST_PRICE-1)} with volume {buyReserve}')
+        #BUYING
+        orders.append(Order(product, min(best_bid + 1, self.AMETHYST_PRICE - 1), buyReserve))
+        print(f'Market Making Buy Order at {min(best_bid + 1, self.AMETHYST_PRICE - 1)} with volume {buyReserve}')
+        #SELLING
+        orders.append(Order(product, max(best_ask - 1, self.AMETHYST_PRICE + 1), sellReserve))
+        print(f'Market Making Sell Order at {max(best_ask - 1, self.AMETHYST_PRICE + 1)} with volume {sellReserve}')
         ###################################################################
         
         return orders
+    
+    def lin_reg_starfruit(self, order_depth, state):
+        return -1
 
     def run(self, state: TradingState) -> Dict[str, List[Order]]:
         result = {}
@@ -134,13 +134,9 @@ class Trader:
                 except:
                     curr_position = 0
 
-                if product == 'AMETHYSTS':
-                    orders = self.market_make_amethyst(product, order_depth, curr_position)
-                    result[product] = orders
-                    continue
-
+                orders = self.market_make_amethyst(product, order_depth, curr_position)
                 result[product] = orders
-            else:
+            if product == 'STARFRUIT':
                 if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
                     ##GET TRADES
                     try:
@@ -293,6 +289,6 @@ class Trader:
         params = [RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, 
                   MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS]
         traderData = jsonpickle.encode(params) # String value holding Trader state data required. It will be delivered as TradingState.traderData on next execution.
-        conversions = 0
+        conversions = 1
 
         return result, conversions, traderData

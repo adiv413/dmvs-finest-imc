@@ -19,48 +19,45 @@ class Trader:
 
         osell = collections.OrderedDict(sorted(order_depth.sell_orders.items()))
         obuy = collections.OrderedDict(sorted(order_depth.buy_orders.items(), reverse=True))
-        buyReserve = min(20, 20-position)
-        sellReserve = max(-20, -20-position)
+        buyReserve = min(20, 20 - position)
+        sellReserve = max(-20, -20 - position)
+
+        ###################################################################
         ## Market Taking
         #BUYING
         print(f'Position: {position}')
         for sellOrder in osell:
             if sellOrder < self.AMETHYST_PRICE:
                 orders.append(Order(product, sellOrder, min(buyReserve,-osell[sellOrder])))
-                buyReserve -= min(buyReserve,-osell[sellOrder])
-                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve,-osell[sellOrder])}')
+                buyReserve -= min(buyReserve, -osell[sellOrder])
+                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve, -osell[sellOrder])}')
             elif sellOrder == self.AMETHYST_PRICE and position < 0:
-                orders.append(Order(product, sellOrder, min(buyReserve,-osell[sellOrder])))
-                buyReserve -= min(buyReserve,-osell[sellOrder])
-                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve,-osell[sellOrder])}')
-               
-        #BUYING
+                orders.append(Order(product, sellOrder, min(buyReserve, -osell[sellOrder])))
+                buyReserve -= min(buyReserve, -osell[sellOrder])
+                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve, -osell[sellOrder])}')
 
         #SELLING    
         for buyOrder in obuy:
             if buyOrder > self.AMETHYST_PRICE:
-                orders.append(Order(product, buyOrder, max(sellReserve,-obuy[buyOrder])))
-                sellReserve -= max(sellReserve,-obuy[buyOrder])
-                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve,-obuy[buyOrder])}')
+                orders.append(Order(product, buyOrder, max(sellReserve, -obuy[buyOrder])))
+                sellReserve -= max(sellReserve, -obuy[buyOrder])
+                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve, -obuy[buyOrder])}')
             elif buyOrder == self.AMETHYST_PRICE and position > 0:
-                orders.append(Order(product, buyOrder, max(sellReserve,-obuy[buyOrder])))
-                sellReserve -= max(sellReserve,-obuy[buyOrder])
-                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve,-obuy[buyOrder])}')
-               
-        # SELLING
+                orders.append(Order(product, buyOrder, max(sellReserve, -obuy[buyOrder])))
+                sellReserve -= max(sellReserve, -obuy[buyOrder])
+                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve, -obuy[buyOrder])}')
 
         print(f'Position: {position}')
         ###################################################################
-
         ## Market Making
         best_bid = list(obuy.keys())[0]
         best_ask = list(osell.keys())[0]
-        #sell order
-        orders.append(Order(product, max(best_ask-1, self.AMETHYST_PRICE+1), sellReserve))
-        print(f'Market Making Sell Order at {max(best_ask-1, self.AMETHYST_PRICE+1)} with volume {sellReserve}')
-        #buy order
-        orders.append(Order(product, min(best_bid+1, self.AMETHYST_PRICE-1), buyReserve))
-        print(f'Market Making Buy Order at {min(best_bid+1, self.AMETHYST_PRICE-1)} with volume {buyReserve}')
+        #BUYING
+        orders.append(Order(product, min(best_bid + 1, self.AMETHYST_PRICE - 1), buyReserve))
+        print(f'Market Making Buy Order at {min(best_bid + 1, self.AMETHYST_PRICE - 1)} with volume {buyReserve}')
+        #SELLING
+        orders.append(Order(product, max(best_ask - 1, self.AMETHYST_PRICE + 1), sellReserve))
+        print(f'Market Making Sell Order at {max(best_ask - 1, self.AMETHYST_PRICE + 1)} with volume {sellReserve}')
         ###################################################################
         
         return orders
