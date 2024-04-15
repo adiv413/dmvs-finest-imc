@@ -361,7 +361,7 @@ class Trader:
 
                     for ask, vol in sell_orders.items():
                         buy_vol += abs(vol)
-                        conversion_buy_price = conv_bid + ((transport_fees + import_tariff)) + storage_cost
+                        conversion_buy_price = conv_ask + ((transport_fees + import_tariff)) + storage_cost
                         expected_profit = 0
                         orders = []
                         running_orders_buy.append([ask, vol])
@@ -374,7 +374,7 @@ class Trader:
                     running_orders_sell = []
                     for bid, vol in buy_orders.items():
                         sell_vol += abs(vol)
-                        conversion_sell_price = conv_ask - ((transport_fees + export_tariff)) - storage_cost
+                        conversion_sell_price = conv_bid - ((transport_fees + export_tariff)) - storage_cost
                         expected_profit = 0
                         orders = []
                         running_orders_sell.append([bid, vol])
