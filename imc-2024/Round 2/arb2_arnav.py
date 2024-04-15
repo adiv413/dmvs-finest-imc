@@ -343,6 +343,8 @@ class Trader:
                     # do currency arb, so if we have a long position in orchids, we can sell it off to the conversion market
                     if position != 0:
                         total_conversions = position
+
+                    print(f"Total conversions: {total_conversions}")
                     
                     # for every sell order in the order book, check if it is cheaper than the buy order in the conversion market + fees
                     for ask, vol in sell_orders.items():
