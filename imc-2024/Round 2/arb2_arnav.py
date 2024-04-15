@@ -347,24 +347,50 @@ class Trader:
 
                     print(f"Total conversions: {total_conversions}")
                     
+                    #create ordered dict for buy orders and sell orders mapping a list of orders to expected profit
+                    orders_buy = collections.OrderedDict()
+                    orders_sell = collections.OrderedDict()
+
+                    buy_vol = 0
+                    sell_vol = 0
+
                     # for every sell order in the order book, check if it is cheaper than the buy order in the conversion market + fees
                     for ask, vol in sell_orders.items():
-                        acceptable_price = conv_ask + ((transport_fees + import_tariff) / abs(vol)) + storage_cost
-                        if acceptable_price < ask:
-                            # total_conversions -= vol  (don't do this, should buy in the next time step once product is shorted)
-                            # also fill the sell order
-                            orders.append(Order(product, ask, -vol))
-                        else:
-                            break
+                        buy_vol += abs(vol)
+                        conversion_buy_price = conv_bid + ((transport_fees + import_tariff)/ buy_vol) + storage_cost
+                        expected_profit = 0
+                        orders = []
+                        for ask, vol in sell_orders.items():
+                            if ask > conversion_buy_price:
+                                expected_profit += (ask - conversion_buy_price) * abs(vol)
+                                orders.append(Order(product, ask, -vol))
+                        orders_sell[expected_profit] = orders
+                    
                     # for every buy order in the order book, check if it is more expensive than the sell order in the conversion market - fees
                     for bid, vol in buy_orders.items():
-                        acceptable_price = conv_bid - ((transport_fees - export_tariff) / abs(vol)) - storage_cost
-                        if acceptable_price > bid:
-                            # total_conversions += vol (don't do this, should sell in the next time step once product is aquired)
-                            # also fill the buy order
-                            orders.append(Order(product, bid, -vol))
-                        else:
-                            break
+                        sell_vol += abs(vol)
+                        conversion_sell_price = conv_ask - ((transport_fees + export_tariff)/ sell_vol) - storage_cost
+                        expected_profit = 0
+                        orders = []
+                        for bid, vol in buy_orders.items():
+                            if bid < conversion_sell_price:
+                                expected_profit += (conversion_sell_price - bid) * abs(vol)
+                                orders.append(Order(product, bid, -vol))
+                        orders_buy[expected_profit] = orders
+                    
+                    # add the orders with the highest expective profits (only if its positive to orders)
+                    orders = []
+                    if len(orders_buy) > 0:
+                        max_profit = max(orders_buy.keys())
+                        if max_profit > 0:
+                            orders += orders_buy[max_profit]
+                    if len(orders_sell) > 0:
+                        max_profit = max(orders_sell.keys())
+                        if max_profit > 0:
+                            orders += orders_sell[max_profit]
+                    
+
+
                     
                     ## PRINT STATS
                     print(f'{product}:')
