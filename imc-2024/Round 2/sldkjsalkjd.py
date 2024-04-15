@@ -85,6 +85,9 @@ class Trader:
         if timestamp == 0:
             buys = []
             conv_prices = 0
+            mcginley_price = 0
+            LBT = 0
+            LBP = 0
     
             ## MARKET MAKING PARAMETERS
             RISK_ADJUSTMENT = {"AMETHYSTS" : 0.1, "STARFRUIT" : 0.1, "ORCHIDS": 0.1}
@@ -125,7 +128,7 @@ class Trader:
 
         else:
             traderData = jsonpickle.decode(state.traderData)
-            RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS, buys, conv_prices = traderData
+            RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS, buys, conv_prices, mcginley_price, LBT, LBP = traderData
 
         for product in products:
             orders: list[Order] = []
@@ -316,8 +319,8 @@ class Trader:
                         if trade.timestamp == LAST_TIMESTAMP:
                             if trade.buyer == "SUBMISSION" and trade.price == ALGO_LAST_ORDER_PRICE[product]["BUY"]:
                                 delta_pos = max(ALGO_POSITION[product] + trade.quantity, 0) - max(ALGO_POSITION[product], 0)
-                                if delta_pos > 0:
-                                    buys.append((LAST_TIMESTAMP, ALGO_LAST_ORDER_PRICE[product]["BUY"], delta_pos))
+                                # if delta_pos > 0:
+                                #     buys.append((LAST_TIMESTAMP, ALGO_LAST_ORDER_PRICE[product]["BUY"], delta_pos))
                                 ALGO_POSITION[product] += trade.quantity
                             elif trade.seller == "SUBMISSION" and trade.price == ALGO_LAST_ORDER_PRICE[product]["SELL"]:
                                 ALGO_POSITION[product] -= trade.quantity
@@ -342,17 +345,26 @@ class Trader:
                     # LOCAL TRADING
 
                     ##############################
+                    n=12
+                    k=0.67
+
+                    if mcginley_price == 0:
+                        mcginley_price = value
+                    else:
+                        mcginley_price = mcginley_price + (value-mcginley_price)/(k * n * (value/mcginley_price)**4)
 
                     # if ask crosses conv ask, buy to it
-                    if best_ask < conv_ask + import_tariff:
+                    if best_ask < mcginley_price:
                         orders.append(Order(product, best_ask+1, max(0,min(-best_ask_volume, ALGO_POSITION_LIMIT[product] - ALGO_POSITION[product]))))
                         ALGO_LAST_ORDER_PRICE[product]["BUY"] = best_ask+1
+                        LBT = timestamp
+                        LBP = best_ask+1
                         print("buying at", best_ask, "oa", best_ask, "ca", conv_ask)
                     else:
                         ALGO_LAST_ORDER_PRICE[product]["BUY"] = 0
 
                     # if bid crosses conv bid, sell to it
-                    if best_bid > conv_bid:
+                    if best_bid > mcginley_price:
                         orders.append(Order(product, best_bid-1, -max(0,min(best_bid_volume, ALGO_POSITION_LIMIT[product] + ALGO_POSITION[product]))))
                         ALGO_LAST_ORDER_PRICE[product]["SELL"] = best_bid-1
                         print("selling at", best_bid, "ob", best_bid, "cb", conv_bid)
@@ -368,8 +380,7 @@ class Trader:
 
                     ##############################
 
-                    n=12
-                    k=0.67
+                    
 
                     curr_conv_price = conv_value
 
@@ -378,14 +389,14 @@ class Trader:
                     else:
                         conv_prices = conv_prices + (curr_conv_price-conv_prices)/(k * n * (curr_conv_price/conv_prices)**4)
 
-                    if position != 0:
-                        if conv_ask < (conv_prices + import_tariff - transport_fees): #want to buy foreign position
-                            total_conversions = -position
-                            print("made conversion with conv ask ", conv_ask, "conv bid", conv_bid, "conv price", conv_prices, "position", position)
+                    # if position != 0:
+                    #     if conv_ask < (conv_prices + import_tariff - transport_fees): #want to buy foreign position
+                    #         total_conversions = -position
+                    #         print("made conversion with conv ask ", conv_ask, "conv bid", conv_bid, "conv price", conv_prices, "position", position)
 
-                        if conv_bid > (conv_prices + export_tariff + transport_fees):
-                            total_conversions = -position
-                            print("made conversion with conv ask ", conv_ask, "conv bid", conv_bid, "conv price", conv_prices, "position", position)
+                    #     if conv_bid > (conv_prices + export_tariff + transport_fees):
+                    #         total_conversions = -position
+                    #         print("made conversion with conv ask ", conv_ask, "conv bid", conv_bid, "conv price", conv_prices, "position", position)
 
                     ##############################
 
@@ -396,16 +407,16 @@ class Trader:
                     # look at position depreciation and see if we need to sell off orchids this timestep
 
                     if total_conversions == 0 and position > 0: # we didn't trade internationally this timestep
-                        while len(buys) != 0:
-                            acceptable_price = conv_bid + (state.timestamp - buys[0][0]) / dt * storage_cost - transport_fees  - export_tariff
-                            print("conv bid", conv_bid)
-                            print("acceptable price", acceptable_price)
-                            if acceptable_price > buys[0][1]:
-                                total_conversions += buys[0][2]
-                                print("converting stuff automatically")
-                                buys.pop(0)
-                            else:
-                                break
+                        # while len(buys) != 0:
+                        acceptable_price = conv_bid + (state.timestamp - LBT) / dt * storage_cost - transport_fees / LBP - export_tariff / LBP
+                        print("conv bid", conv_bid)
+                        print("acceptable price", acceptable_price)
+                        if acceptable_price > LBP:
+                            total_conversions = position
+                            print("converting stuff automatically")
+                            # buys.pop(0)
+                        else:
+                            break
 
                         total_conversions = -total_conversions # sell off position
                     print("total conversions:", total_conversions)
@@ -428,7 +439,7 @@ class Trader:
         
         print('\n----------------------------------------------------------------------------------------------------\n')
         params = [RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, 
-                  MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS, buys, conv_prices]
+                  MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS, buys, conv_prices, mcginley_price, LBT, LBP]
         traderData = jsonpickle.encode(params) # String value holding Trader state data required. It will be delivered as TradingState.traderData on next execution.
 
         return result, total_conversions, traderData
