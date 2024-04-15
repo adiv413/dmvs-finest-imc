@@ -80,6 +80,7 @@ class Trader:
         LR_LOOKBACK = {"STARFRUIT": 12, "ORCHIDS": 12}
         products = ["AMETHYSTS", "STARFRUIT", "ORCHIDS"]
         storage_cost = 0.1
+        total_conversions = 0
 
 
         if timestamp == 0:
@@ -320,7 +321,7 @@ class Trader:
                     ##############################
 
 
-                    total_conversions = 0
+
                         
                     ##############################
 
