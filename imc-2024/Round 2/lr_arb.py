@@ -200,7 +200,7 @@ class Trader:
                         result[product] = orders
                         PREV_PRICES[product].append(curr_price)
                         PREV_TIMESTAMPS[product].append(state.timestamp)
-                        return result, 0, jsonpickle.encode([RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS])
+                        continue
 
                     PREV_PRICES[product].pop(0)
                     PREV_TIMESTAMPS[product].pop(0)
@@ -288,6 +288,11 @@ class Trader:
             if product == 'ORCHIDS':
                 if len(order_depth.sell_orders) > 0 and len(order_depth.buy_orders) > 0:
                     dt = state.timestamp - LAST_TIMESTAMP
+
+                    try:
+                        position = state.position[product]
+                    except:
+                        position = 0
                     
                     ##GET TRADES
                     try:
