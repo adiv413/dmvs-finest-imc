@@ -350,32 +350,37 @@ class Trader:
                     #create ordered dict for buy orders and sell orders mapping a list of orders to expected profit
                     orders_buy = collections.OrderedDict()
                     orders_sell = collections.OrderedDict()
+                    
 
                     buy_vol = 0
                     sell_vol = 0
 
+                    
                     # for every sell order in the order book, check if it is cheaper than the buy order in the conversion market + fees
+                    running_orders_buy = []
+
                     for ask, vol in sell_orders.items():
                         buy_vol += abs(vol)
                         conversion_buy_price = conv_bid + ((transport_fees + import_tariff)/ buy_vol) + storage_cost
                         expected_profit = 0
                         orders = []
-                        for ask, vol in sell_orders.items():
-                            if ask > conversion_buy_price:
-                                expected_profit += (ask - conversion_buy_price) * abs(vol)
-                                orders.append(Order(product, ask, -vol))
+                        running_orders_buy.append([ask, vol])
+                        for ask, vol in running_orders_buy:
+                            expected_profit += (ask - conversion_buy_price) * abs(vol)
+                            orders.append(Order(product, ask, -vol))
                         orders_sell[expected_profit] = orders
                     
                     # for every buy order in the order book, check if it is more expensive than the sell order in the conversion market - fees
+                    running_orders_sell = []
                     for bid, vol in buy_orders.items():
                         sell_vol += abs(vol)
                         conversion_sell_price = conv_ask - ((transport_fees + export_tariff)/ sell_vol) - storage_cost
                         expected_profit = 0
                         orders = []
-                        for bid, vol in buy_orders.items():
-                            if bid < conversion_sell_price:
-                                expected_profit += (conversion_sell_price - bid) * abs(vol)
-                                orders.append(Order(product, bid, -vol))
+                        running_orders_sell.append([bid, vol])
+                        for bid, vol in running_orders_sell:
+                            expected_profit += (conversion_sell_price - bid) * abs(vol)
+                            orders.append(Order(product, bid, vol))
                         orders_buy[expected_profit] = orders
                     
                     # add the orders with the highest expective profits (only if its positive to orders)
