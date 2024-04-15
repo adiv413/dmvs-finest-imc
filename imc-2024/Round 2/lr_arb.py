@@ -36,39 +36,39 @@ class Trader:
         ###################################################################
         ## Market Taking
         #BUYING
-        print(f'Position: {position}')
+        # print(f'Position: {position}')
         for sellOrder in osell:
             if sellOrder < AMETHYST_PRICE:
                 orders.append(Order(product, sellOrder, min(buyReserve,-osell[sellOrder])))
                 buyReserve -= min(buyReserve, -osell[sellOrder])
-                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve, -osell[sellOrder])}')
+                # print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve, -osell[sellOrder])}')
             elif sellOrder == AMETHYST_PRICE and position < 0:
                 orders.append(Order(product, sellOrder, min(buyReserve, -osell[sellOrder])))
                 buyReserve -= min(buyReserve, -osell[sellOrder])
-                print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve, -osell[sellOrder])}')
+                # print(f'Market Taking Buy Order at {sellOrder} with volume {min(buyReserve, -osell[sellOrder])}')
 
         #SELLING    
         for buyOrder in obuy:
             if buyOrder > AMETHYST_PRICE:
                 orders.append(Order(product, buyOrder, max(sellReserve, -obuy[buyOrder])))
                 sellReserve -= max(sellReserve, -obuy[buyOrder])
-                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve, -obuy[buyOrder])}')
+                # print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve, -obuy[buyOrder])}')
             elif buyOrder == AMETHYST_PRICE and position > 0:
                 orders.append(Order(product, buyOrder, max(sellReserve, -obuy[buyOrder])))
                 sellReserve -= max(sellReserve, -obuy[buyOrder])
-                print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve, -obuy[buyOrder])}')
+                # print(f'Market Taking Sell Order at {buyOrder} with volume {max(sellReserve, -obuy[buyOrder])}')
 
-        print(f'Position: {position}')
+        # print(f'Position: {position}')
         ###################################################################
         ## Market Making
         best_bid = list(obuy.keys())[0]
         best_ask = list(osell.keys())[0]
         #BUYING
         orders.append(Order(product, min(best_bid + 1, AMETHYST_PRICE - 1), buyReserve))
-        print(f'Market Making Buy Order at {min(best_bid + 1, AMETHYST_PRICE - 1)} with volume {buyReserve}')
+        # print(f'Market Making Buy Order at {min(best_bid + 1, AMETHYST_PRICE - 1)} with volume {buyReserve}')
         #SELLING
         orders.append(Order(product, max(best_ask - 1, AMETHYST_PRICE + 1), sellReserve))
-        print(f'Market Making Sell Order at {max(best_ask - 1, AMETHYST_PRICE + 1)} with volume {sellReserve}')
+        # print(f'Market Making Sell Order at {max(best_ask - 1, AMETHYST_PRICE + 1)} with volume {sellReserve}')
         ###################################################################
         
         return orders
@@ -84,6 +84,7 @@ class Trader:
 
         if timestamp == 0:
             buys = []
+            conv_prices = 0
     
             ## MARKET MAKING PARAMETERS
             RISK_ADJUSTMENT = {"AMETHYSTS" : 0.1, "STARFRUIT" : 0.1, "ORCHIDS": 0.1}
@@ -124,7 +125,7 @@ class Trader:
 
         else:
             traderData = jsonpickle.decode(state.traderData)
-            RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS, buys = traderData
+            RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS, buys, conv_prices = traderData
 
         for product in products:
             orders: list[Order] = []
@@ -276,11 +277,11 @@ class Trader:
                     
                     
                     ## PRINT STATS
-                    print(f'{product}:')
+                    # print(f'{product}:')
                     
-                    print(f'Actual position: {position}')
-                    print('Estimated MM position: ', MM_POSITION[product])
-                    print('Estimated ALGO position: ', ALGO_POSITION[product])
+                    # print(f'Actual position: {position}')
+                    # print('Estimated MM position: ', MM_POSITION[product])
+                    # print('Estimated ALGO position: ', ALGO_POSITION[product])
                     ##############################
                     
                     result[product] = orders
@@ -331,6 +332,7 @@ class Trader:
 
                     conv_ask = state.observations.conversionObservations[product].askPrice
                     conv_bid = state.observations.conversionObservations[product].bidPrice
+                    conv_value = (conv_ask + conv_bid)/2
                     transport_fees = state.observations.conversionObservations[product].transportFees
                     export_tariff = state.observations.conversionObservations[product].exportTariff
                     import_tariff = state.observations.conversionObservations[product].importTariff
@@ -345,6 +347,7 @@ class Trader:
                     if best_ask < conv_ask:
                         orders.append(Order(product, best_ask, max(0,min(-best_ask_volume, ALGO_POSITION_LIMIT[product] - ALGO_POSITION[product]))))
                         ALGO_LAST_ORDER_PRICE[product]["BUY"] = best_ask
+                        print("buying at", best_ask, "oa", best_ask, "ca", conv_ask)
                     else:
                         ALGO_LAST_ORDER_PRICE[product]["BUY"] = 0
 
@@ -352,6 +355,7 @@ class Trader:
                     if best_bid > conv_bid:
                         orders.append(Order(product, best_bid, -max(0,min(best_bid_volume, ALGO_POSITION_LIMIT[product] + ALGO_POSITION[product]))))
                         ALGO_LAST_ORDER_PRICE[product]["SELL"] = best_bid
+                        print("selling at", best_bid, "ob", best_bid, "cb", conv_bid)
                     else:
                         ALGO_LAST_ORDER_PRICE[product]["SELL"] = 0
 
@@ -364,7 +368,19 @@ class Trader:
 
                     ##############################
 
+                    n=12
+                    k=0.67
 
+                    curr_conv_price = conv_value
+
+                    if conv_prices == 0:
+                        conv_prices = conv_value
+                    else:
+                        conv_prices = conv_prices + (curr_conv_price-conv_prices)/(k * n * (curr_conv_price/conv_prices)**4)
+
+                    if conv_ask < conv_prices or conv_bid > conv_prices:
+                        total_conversions = -position
+                        print("made conversion with conv ask ", conv_ask, "conv bid", conv_bid, "conv price", conv_prices, "position", position)
 
                     ##############################
 
@@ -384,22 +400,27 @@ class Trader:
                                 break
 
                         total_conversions = -total_conversions # sell off position
+                    print("total conversions:", total_conversions)
+                    print("buys", buys)
+                    print("time", timestamp)
+                    print("position", position)
                     
                     ## PRINT STATS
-                    print(f'{product}:')
+                    # print(f'{product}:')
                     
-                    print(f'Actual position: {position}')
-                    print('Estimated MM position: ', MM_POSITION[product])
-                    print('Estimated ALGO position: ', ALGO_POSITION[product])
+                    # print(f'Actual position: {position}')
+                    # print('Estimated MM position: ', MM_POSITION[product])
+                    # print('Estimated ALGO position: ', ALGO_POSITION[product])
                     ##############################
                     
                     result[product] = orders
+                    print("\n")
 
         LAST_TIMESTAMP = state.timestamp
         
         print('\n----------------------------------------------------------------------------------------------------\n')
         params = [RISK_ADJUSTMENT, ORDER_VOLUME, HALF_SPREAD_SIZE, prices, MM_POSITION_LIMIT, MM_POSITION, 
-                  MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS, buys]
+                  MM_LAST_ORDER_PRICE, ALGO_POSITION_LIMIT, ALGO_POSITION, ALGO_LAST_ORDER_PRICE, LAST_TIMESTAMP, PREV_PRICES, PREV_TIMESTAMPS, buys, conv_prices]
         traderData = jsonpickle.encode(params) # String value holding Trader state data required. It will be delivered as TradingState.traderData on next execution.
 
         return result, total_conversions, traderData
