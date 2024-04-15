@@ -348,7 +348,7 @@ class Trader:
                     
                     # for every sell order in the order book, check if it is cheaper than the buy order in the conversion market + fees
                     for ask, vol in sell_orders.items():
-                        acceptable_price = conv_bid + transport_fees + import_tariff + storage_cost * vol
+                        acceptable_price = conv_bid + transport_fees + import_tariff + storage_cost
                         if acceptable_price < ask:
                             # total_conversions -= vol  (don't do this, should buy in the next time step once product is shorted)
                             # also fill the sell order
@@ -357,7 +357,7 @@ class Trader:
                             break
                     # for every buy order in the order book, check if it is more expensive than the sell order in the conversion market - fees
                     for bid, vol in buy_orders.items():
-                        acceptable_price = conv_ask - transport_fees - export_tariff 
+                        acceptable_price = conv_ask - transport_fees - export_tariff - storage_cost
                         if acceptable_price > bid:
                             # total_conversions += vol (don't do this, should sell in the next time step once product is aquired)
                             # also fill the buy order
