@@ -341,21 +341,21 @@ class Trader:
                     buy_orders = collections.OrderedDict(sorted(order_depth.buy_orders.items(), reverse=True))
 
                     # do currency arb, so if we have a long position in orchids, we can sell it off to the conversion market
-                    if position > 0:
+                    if position != 0:
                         total_conversions = position
                     
                     # for every sell order in the order book, check if it is cheaper than the buy order in the conversion market + fees
                     for ask, vol in sell_orders.items():
-                        acceptable_price = conv_bid + transport_fees + import_tariff
+                        acceptable_price = conv_bid + transport_fees + import_tariff + storage_cost * vol
                         if acceptable_price < ask:
                             # total_conversions -= vol  (don't do this, should buy in the next time step once product is shorted)
                             # also fill the sell order
                             orders.append(Order(product, ask, -vol))
                         else:
                             break
-                    # for every buy order in the order book, check if it is more expensive than the sell order in the conversion market + fees
+                    # for every buy order in the order book, check if it is more expensive than the sell order in the conversion market - fees
                     for bid, vol in buy_orders.items():
-                        acceptable_price = conv_ask + transport_fees + export_tariff + storage_cost * vol
+                        acceptable_price = conv_ask - transport_fees - export_tariff 
                         if acceptable_price > bid:
                             # total_conversions += vol (don't do this, should sell in the next time step once product is aquired)
                             # also fill the buy order
