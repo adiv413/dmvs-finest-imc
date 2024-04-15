@@ -343,7 +343,7 @@ class Trader:
 
                     # do currency arb, so if we have a long position in orchids, we can sell it off to the conversion market
                     if position != 0:
-                        total_conversions = position
+                        total_conversions = -position
 
                     print(f"Total conversions: {total_conversions}")
                     
@@ -362,21 +362,9 @@ class Trader:
                         if acceptable_price > bid:
                             # total_conversions += vol (don't do this, should sell in the next time step once product is aquired)
                             # also fill the buy order
-                            orders.append(Order(product, bid, vol))
+                            orders.append(Order(product, bid, -vol))
                         else:
                             break
-                    
-
-                    # if total_conversions == 0: # we didn't trade internationally this timestep
-                    #     while len(buys) != 0:
-                    #         acceptable_price = conv_ask + (state.timestamp - buys[0][0]) / dt * storage_cost - transport_fees / buys[0][2] - export_tariff / buys[0][2]
-                    #         if acceptable_price > buys[0][1]:
-                    #             total_conversions += buys[0][2]
-                    #             buys.pop(0)
-                    #         else:
-                    #             break
-
-                    #     total_conversions = -total_conversions # sell off position
                     
                     ## PRINT STATS
                     print(f'{product}:')
