@@ -358,7 +358,7 @@ class Trader:
                     
                     # for every sell order in the order book, check if it is cheaper than the buy order in the conversion market + fees
                     running_orders_buy = []
-
+                    '''
                     for ask, vol in sell_orders.items():
                         buy_vol += abs(vol)
                         conversion_buy_price = conv_ask + ((transport_fees + import_tariff)) + storage_cost
@@ -369,7 +369,7 @@ class Trader:
                             expected_profit += (ask - conversion_buy_price) * abs(vol)
                             orders.append(Order(product, ask, -vol))
                         orders_sell[expected_profit] = orders
-                    
+                    '''
                     # for every buy order in the order book, check if it is more expensive than the sell order in the conversion market - fees
                     running_orders_sell = []
                     for bid, vol in buy_orders.items():
